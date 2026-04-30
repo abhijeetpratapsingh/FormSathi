@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
 
 class SplashPage extends StatefulWidget {
@@ -27,27 +28,25 @@ class _SplashPageState extends State<SplashPage> {
     return Scaffold(
       body: DecoratedBox(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              theme.colorScheme.primary,
-              theme.colorScheme.secondary,
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          gradient: AppColors.primaryGradient(),
         ),
         child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                height: 88,
-                width: 88,
+                height: 96,
+                width: 96,
+                padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.16),
-                  shape: BoxShape.circle,
+                  borderRadius: BorderRadius.circular(28),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
                 ),
-                child: const Icon(Icons.description_rounded, size: 42, color: Colors.white),
+                child: Image.asset(
+                  'assets/images/formsathi-logo.png',
+                  fit: BoxFit.contain,
+                ),
               ),
               const SizedBox(height: 20),
               Text(

@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.formsathi.app"
+    namespace = "com.formsathi.mobile"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -19,7 +19,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.formsathi.app"
+        applicationId = "com.formsathi.mobile"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

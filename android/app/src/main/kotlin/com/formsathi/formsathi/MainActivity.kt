@@ -1,4 +1,4 @@
-package com.formsathi.app
+package com.formsathi.formsathi
 
 import io.flutter.embedding.android.FlutterActivity
 

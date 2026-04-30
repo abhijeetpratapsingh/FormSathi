@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../constants/app_colors.dart';
 import '../constants/app_sizes.dart';
 
 class EmptyStateCard extends StatelessWidget {
@@ -25,7 +26,20 @@ class EmptyStateCard extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 42, color: theme.colorScheme.primary),
+            Container(
+              height: 64,
+              width: 64,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.primary.withValues(alpha: 0.18),
+                    AppColors.accent.withValues(alpha: 0.18),
+                  ],
+                ),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 30, color: AppColors.primary),
+            ),
             const SizedBox(height: AppSizes.md),
             Text(
               title,

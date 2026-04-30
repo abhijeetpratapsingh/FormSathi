@@ -43,6 +43,7 @@ class DocumentCard extends StatelessWidget {
                   size: size,
                   onRename: onRename,
                   onDelete: onDelete,
+                  compactActions: true,
                 ),
               ),
             ],
@@ -60,6 +61,7 @@ class DocumentCard extends StatelessWidget {
                 size: size,
                 onRename: onRename,
                 onDelete: onDelete,
+                compactActions: true,
               ),
             ],
           );
@@ -102,7 +104,7 @@ class _Thumbnail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final height = fullWidth ? 130.0 : 82.0;
+    final height = fullWidth ? 110.0 : 82.0;
     final width = fullWidth ? double.infinity : 82.0;
     return ClipRRect(
       borderRadius: AppSizes.cardRadius,
@@ -128,76 +130,169 @@ class _Info extends StatelessWidget {
     required this.size,
     required this.onRename,
     required this.onDelete,
+    required this.compactActions,
   });
 
   final SavedDocument document;
   final int size;
   final VoidCallback onRename;
   final VoidCallback onDelete;
+  final bool compactActions;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final dateText = document.updatedAt.toDisplayDate();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           document.title,
-          maxLines: 2,
+          maxLines: compactActions ? 1 : 2,
           overflow: TextOverflow.ellipsis,
-          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+          style: (compactActions ? theme.textTheme.titleSmall : theme.textTheme.titleMedium)
+              ?.copyWith(fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 6),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            _MetaChip(label: document.category.label),
-            _MetaChip(label: FileSizeFormatter.format(size)),
-          ],
-        ),
-        const SizedBox(height: AppSizes.sm),
-        Text(
-          document.updatedAt.toDisplayDate(),
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
+        if (!compactActions) ...[
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _MetaChip(label: document.category.label, compact: false),
+              _MetaChip(label: FileSizeFormatter.format(size), compact: false),
+            ],
           ),
-        ),
-        const SizedBox(height: AppSizes.sm),
-        Row(
-          children: [
-            TextButton.icon(
-              onPressed: onRename,
-              icon: const Icon(Icons.edit_outlined),
-              label: const Text('Rename'),
+          const SizedBox(height: AppSizes.sm),
+          Text(
+            dateText,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
             ),
-            const SizedBox(width: 8),
-            TextButton.icon(
-              onPressed: onDelete,
-              icon: const Icon(Icons.delete_outline),
-              label: const Text('Delete'),
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(height: AppSizes.sm),
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: [
+              _ActionButton(
+                icon: Icons.edit_outlined,
+                label: 'Rename',
+                onPressed: onRename,
+                compact: false,
+              ),
+              _ActionButton(
+                icon: Icons.delete_outline,
+                label: 'Delete',
+                onPressed: onDelete,
+                compact: false,
+              ),
+            ],
+          ),
+        ] else
+          _CompactMenu(
+            onRename: onRename,
+            onDelete: onDelete,
+          ),
       ],
     );
   }
 }
 
 class _MetaChip extends StatelessWidget {
-  const _MetaChip({required this.label});
+  const _MetaChip({required this.label, required this.compact});
 
   final String label;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Chip(
       label: Text(label),
-      labelStyle: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w600),
-      visualDensity: VisualDensity.compact,
+      labelStyle: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w600),
+      visualDensity: compact ? VisualDensity.compact : VisualDensity.standard,
       side: BorderSide(color: theme.colorScheme.outline),
       backgroundColor: Colors.white,
+    );
+  }
+}
+
+class _ActionButton extends StatelessWidget {
+  const _ActionButton({
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+    required this.compact,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onPressed;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return TextButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: compact ? 16 : 18),
+      label: Text(label, style: theme.textTheme.labelMedium),
+      style: TextButton.styleFrom(
+        padding: compact
+            ? const EdgeInsets.symmetric(horizontal: 8, vertical: 4)
+            : const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        visualDensity: compact ? VisualDensity.compact : VisualDensity.standard,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        minimumSize: const Size(0, 32),
+      ),
+    );
+  }
+}
+
+class _CompactMenu extends StatelessWidget {
+  const _CompactMenu({
+    required this.onRename,
+    required this.onDelete,
+  });
+
+  final VoidCallback onRename;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<String>(
+      padding: EdgeInsets.zero,
+      onSelected: (value) {
+        if (value == 'rename') {
+          onRename();
+        } else if (value == 'delete') {
+          onDelete();
+        }
+      },
+      itemBuilder: (context) => const [
+        PopupMenuItem(
+          value: 'rename',
+          child: Text('Rename'),
+        ),
+        PopupMenuItem(
+          value: 'delete',
+          child: Text('Delete'),
+        ),
+      ],
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.more_horiz, color: Theme.of(context).colorScheme.onSurfaceVariant),
+          const SizedBox(width: 4),
+          Text(
+            'Actions',
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+          ),
+        ],
+      ),
     );
   }
 }

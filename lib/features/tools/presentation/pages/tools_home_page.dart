@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/widgets/app_scaffold.dart';
@@ -42,25 +43,31 @@ class ToolsHomePage extends StatelessWidget {
           return ListView(
             children: [
               SectionCard(
+                gradient: AppColors.primaryGradient(),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       AppStrings.tagline,
                       style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                            color: Theme.of(context).colorScheme.primary,
+                            color: Colors.white.withValues(alpha: 0.9),
                             fontWeight: FontWeight.w700,
                           ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       AppStrings.homeSubtitle,
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                          ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Resize, compress, and create PDFs without internet or signup.',
-                      style: Theme.of(context).textTheme.bodyMedium,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Colors.white.withValues(alpha: 0.9),
+                          ),
                     ),
                   ],
                 ),

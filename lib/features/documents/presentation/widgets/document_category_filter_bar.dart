@@ -65,7 +65,7 @@ class _FilterChip extends StatelessWidget {
       ),
       selectedColor: theme.colorScheme.primary,
       side: BorderSide(color: theme.colorScheme.outline),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+      shape: RoundedRectangleBorder(borderRadius: AppSizes.fieldRadius),
     );
   }
 }

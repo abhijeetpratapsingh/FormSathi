@@ -1,30 +1,58 @@
 import 'package:flutter/material.dart';
-
+import '../constants/app_colors.dart';
 import '../constants/app_sizes.dart';
 
 class AppTheme {
   const AppTheme._();
 
   static ThemeData light() {
-    const colorScheme = ColorScheme(
+    final primary = AppColors.primary;
+    final accent = AppColors.accent;
+    final background = AppColors.background;
+    final foreground = AppColors.foreground;
+    final secondarySurface = AppColors.secondary;
+    final muted = AppColors.muted;
+    final destructive = AppColors.destructive;
+    final border = AppColors.border;
+    final ring = AppColors.ring;
+
+    final colorScheme = ColorScheme(
       brightness: Brightness.light,
-      primary: Color(0xFF2F5BFF),
+      primary: primary,
       onPrimary: Colors.white,
-      secondary: Color(0xFF5C6BC0),
+      secondary: accent,
       onSecondary: Colors.white,
-      error: Color(0xFFBA1A1A),
+      tertiary: secondarySurface,
+      onTertiary: foreground,
+      error: destructive,
       onError: Colors.white,
-      surface: Color(0xFFF8FAFF),
-      onSurface: Color(0xFF181C2A),
-      surfaceContainerHighest: Color(0xFFE4E9F7),
-      onSurfaceVariant: Color(0xFF4E5768),
-      outline: Color(0xFFD3D9E8),
+      surface: background,
+      onSurface: foreground,
+      surfaceContainerHighest: muted,
+      onSurfaceVariant: foreground.withValues(alpha: 0.7),
+      outline: border,
+    ).copyWith(
+      primaryContainer: secondarySurface,
+      onPrimaryContainer: foreground,
+      secondaryContainer: secondarySurface,
+      onSecondaryContainer: foreground,
+      tertiaryContainer: muted,
+      onTertiaryContainer: foreground,
     );
 
     final base = ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
-      scaffoldBackgroundColor: colorScheme.surface,
+      scaffoldBackgroundColor: background,
+      fontFamily: 'Plus Jakarta Sans',
+      textTheme: Typography.blackMountainView.apply(
+        fontFamily: 'Plus Jakarta Sans',
+        fontFamilyFallback: const [
+          'ui-sans-serif',
+          'system-ui',
+          'sans-serif',
+        ],
+      ),
       snackBarTheme: const SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
       ),
@@ -45,15 +73,15 @@ class AppTheme {
         ),
         border: OutlineInputBorder(
           borderRadius: AppSizes.fieldRadius,
-          borderSide: BorderSide(color: colorScheme.outline),
+          borderSide: BorderSide(color: border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: AppSizes.fieldRadius,
-          borderSide: BorderSide(color: colorScheme.outline),
+          borderSide: BorderSide(color: border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: AppSizes.fieldRadius,
-          borderSide: BorderSide(color: colorScheme.primary, width: 1.4),
+          borderSide: BorderSide(color: ring, width: 1.4),
         ),
       ),
     );
@@ -61,14 +89,49 @@ class AppTheme {
     return base.copyWith(
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
-        foregroundColor: colorScheme.onSurface,
+        foregroundColor: foreground,
         surfaceTintColor: Colors.transparent,
         centerTitle: false,
       ),
+      iconTheme: IconThemeData(color: foreground.withValues(alpha: 0.9)),
+      dividerTheme: DividerThemeData(color: border),
       chipTheme: base.chipTheme.copyWith(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(999),
+          borderRadius: AppSizes.fieldRadius,
         ),
+        side: BorderSide(color: border),
+        backgroundColor: secondarySurface,
+        labelStyle: base.textTheme.labelMedium?.copyWith(
+          color: foreground,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          shape: RoundedRectangleBorder(borderRadius: AppSizes.fieldRadius),
+          backgroundColor: primary,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          shape: RoundedRectangleBorder(borderRadius: AppSizes.fieldRadius),
+          side: BorderSide(color: border),
+          foregroundColor: foreground,
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          shape: RoundedRectangleBorder(borderRadius: AppSizes.fieldRadius),
+          foregroundColor: primary,
+        ),
+      ),
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: primary,
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: AppSizes.fieldRadius),
       ),
     );
   }

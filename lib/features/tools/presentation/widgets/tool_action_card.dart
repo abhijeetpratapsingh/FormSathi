@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_sizes.dart';
+
 class ToolActionCard extends StatelessWidget {
   const ToolActionCard({
     required this.title,
@@ -19,22 +22,27 @@ class ToolActionCard extends StatelessWidget {
     final theme = Theme.of(context);
     return Card(
       child: InkWell(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: AppSizes.cardRadius,
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(AppSizes.md),
           child: Row(
             children: [
               Container(
                 width: 52,
                 height: 52,
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(16),
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.primary.withValues(alpha: 0.18),
+                      AppColors.accent.withValues(alpha: 0.18),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(icon, color: theme.colorScheme.primary),
+                child: Icon(icon, color: AppColors.primary),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: AppSizes.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

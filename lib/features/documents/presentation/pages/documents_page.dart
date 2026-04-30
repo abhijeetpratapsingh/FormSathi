@@ -3,7 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_sizes.dart';
+import '../../../../core/constants/app_strings.dart';
+import '../../../../core/widgets/section_card.dart';
 import '../../../../core/enums/document_category.dart';
 import '../../domain/entities/saved_document.dart';
 import '../cubit/documents_cubit.dart';
@@ -84,11 +87,27 @@ class _DocumentsPageState extends State<DocumentsPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(
-                      'Save and organize your documents offline',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    SectionCard(
+                      gradient: AppColors.primaryGradient(),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'My Documents',
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                ),
                           ),
+                          const SizedBox(height: 6),
+                          Text(
+                            AppStrings.documentsEmpty,
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: Colors.white.withValues(alpha: 0.9),
+                                ),
+                          ),
+                        ],
+                      ),
                     ),
                     const SizedBox(height: AppSizes.md),
                     TextField(
@@ -167,7 +186,7 @@ class _DocumentsPageState extends State<DocumentsPage> {
         crossAxisCount: 2,
         mainAxisSpacing: AppSizes.md,
         crossAxisSpacing: AppSizes.md,
-        childAspectRatio: 0.78,
+        childAspectRatio: 0.6,
       ),
       itemCount: documents.length,
       itemBuilder: (context, index) {
@@ -255,31 +274,12 @@ class _DocumentsPageState extends State<DocumentsPage> {
     SavedDocument document,
     DocumentsCubit cubit,
   ) async {
-    final controller = TextEditingController(text: document.title);
     final result = await showDialog<String>(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text('Rename document'),
-          content: TextField(
-            controller: controller,
-            autofocus: true,
-            decoration: const InputDecoration(labelText: 'Document title'),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(context).pop(controller.text),
-              child: const Text('Save'),
-            ),
-          ],
-        );
+        return _RenameDocumentDialog(initialTitle: document.title);
       },
     );
-    controller.dispose();
 
     if (!context.mounted || result == null) return;
     await cubit.renameDocument(document: document, newTitle: result);
@@ -330,5 +330,52 @@ class _DocumentsPageState extends State<DocumentsPage> {
     final fileName = path.split('/').last;
     final index = fileName.lastIndexOf('.');
     return index == -1 ? fileName : fileName.substring(0, index);
+  }
+}
+
+class _RenameDocumentDialog extends StatefulWidget {
+  const _RenameDocumentDialog({required this.initialTitle});
+
+  final String initialTitle;
+
+  @override
+  State<_RenameDocumentDialog> createState() => _RenameDocumentDialogState();
+}
+
+class _RenameDocumentDialogState extends State<_RenameDocumentDialog> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialTitle);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Rename document'),
+      content: TextField(
+        controller: _controller,
+        autofocus: true,
+        decoration: const InputDecoration(labelText: 'Document title'),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(_controller.text),
+          child: const Text('Save'),
+        ),
+      ],
+    );
   }
 }

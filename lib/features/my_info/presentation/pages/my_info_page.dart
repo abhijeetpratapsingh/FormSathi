@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
+import '../../../../core/widgets/section_card.dart';
 import '../../../../core/widgets/empty_state_card.dart';
 import '../../domain/entities/user_info.dart';
 import '../cubit/my_info_cubit.dart';
@@ -178,6 +180,7 @@ class _MyInfoPageState extends State<MyInfoPage> {
           }
         },
         builder: (context, state) {
+          final theme = Theme.of(context);
           if (!_didSyncControllers && state.status == MyInfoStatus.ready) {
             _syncControllers(state.userInfo);
           }
@@ -194,6 +197,29 @@ class _MyInfoPageState extends State<MyInfoPage> {
                     child: ListView(
                         padding: const EdgeInsets.all(16),
                         children: [
+                          SectionCard(
+                            gradient: AppColors.primaryGradient(),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'My Info',
+                                  style: theme.textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  AppStrings.myInfoEmpty,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: Colors.white.withValues(alpha: 0.9),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
                           if (!state.hasUserInfo) ...[
                             EmptyStateCard(
                               icon: Icons.badge_outlined,

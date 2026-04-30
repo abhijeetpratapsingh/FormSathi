@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_sizes.dart';
 
 class FeatureCard extends StatelessWidget {
@@ -27,10 +28,19 @@ class FeatureCard extends StatelessWidget {
           padding: const EdgeInsets.all(AppSizes.md),
           child: Row(
             children: [
-              CircleAvatar(
-                radius: 26,
-                backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.12),
-                child: Icon(icon, color: theme.colorScheme.primary),
+              Container(
+                height: 52,
+                width: 52,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.primary.withValues(alpha: 0.18),
+                      AppColors.accent.withValues(alpha: 0.18),
+                    ],
+                  ),
+                ),
+                child: Icon(icon, color: AppColors.primary),
               ),
               const SizedBox(width: AppSizes.md),
               Expanded(
@@ -51,7 +61,7 @@ class FeatureCard extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right_rounded),
+              Icon(Icons.chevron_right_rounded, color: theme.colorScheme.onSurfaceVariant),
             ],
           ),
         ),

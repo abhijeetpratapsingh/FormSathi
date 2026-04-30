@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 
@@ -78,7 +80,7 @@ class DocumentsCubit extends Cubit<DocumentsState> {
     String? copiedPath;
     try {
       final normalizedTitle = _normalizeTitle(title, category);
-      final fileName = _buildFileName(normalizedTitle, sourcePath);
+      final fileName = _buildFileName(category, sourcePath);
       copiedPath = await _localFileService.saveDocumentCopy(
         sourcePath: sourcePath,
         fileName: fileName,
@@ -199,16 +201,35 @@ class DocumentsCubit extends Cubit<DocumentsState> {
     return category.label;
   }
 
-  String _buildFileName(String title, String sourcePath) {
+  String _buildFileName(DocumentCategory category, String sourcePath) {
     final extension = _extractExtension(sourcePath);
-    final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final safeTitle = title
+    final baseLabel = category.label;
+    final safeLabel = baseLabel
         .toLowerCase()
         .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
         .replaceAll(RegExp(r'_+'), '_')
         .replaceAll(RegExp(r'^_|_$'), '');
-    final baseName = safeTitle.isEmpty ? 'document' : safeTitle;
-    return '${baseName}_$timestamp$extension';
+    final platform = Platform.operatingSystem;
+    final device = _sanitizeDeviceName(Platform.localHostname);
+    final date = _formatDate(DateTime.now());
+    final baseName = safeLabel.isEmpty ? 'document' : safeLabel;
+    return '${baseName}-${platform}-${device}-${date}$extension';
+  }
+
+  String _formatDate(DateTime dateTime) {
+    final year = dateTime.year.toString();
+    final month = dateTime.month.toString().padLeft(2, '0');
+    final day = dateTime.day.toString().padLeft(2, '0');
+    return '$year$month$day';
+  }
+
+  String _sanitizeDeviceName(String input) {
+    final safe = input
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
+        .replaceAll(RegExp(r'-+'), '-')
+        .replaceAll(RegExp(r'^-|-$'), '');
+    return safe.isEmpty ? 'device' : safe;
   }
 
   String _extractExtension(String path) {

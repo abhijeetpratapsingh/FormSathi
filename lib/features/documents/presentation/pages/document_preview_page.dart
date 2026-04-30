@@ -137,31 +137,12 @@ class DocumentPreviewPage extends StatelessWidget {
     DocumentsCubit cubit,
     SavedDocument document,
   ) async {
-    final controller = TextEditingController(text: document.title);
     final result = await showDialog<String>(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text('Rename document'),
-          content: TextField(
-            controller: controller,
-            autofocus: true,
-            decoration: const InputDecoration(labelText: 'Document title'),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(context).pop(controller.text),
-              child: const Text('Save'),
-            ),
-          ],
-        );
+        return _RenameDocumentDialog(initialTitle: document.title);
       },
     );
-    controller.dispose();
     if (result == null) return;
     await cubit.renameDocument(document: document, newTitle: result);
   }
@@ -196,6 +177,53 @@ class DocumentPreviewPage extends StatelessWidget {
     if (cubit.state.errorMessage == null && context.mounted) {
       Navigator.of(context).pop();
     }
+  }
+}
+
+class _RenameDocumentDialog extends StatefulWidget {
+  const _RenameDocumentDialog({required this.initialTitle});
+
+  final String initialTitle;
+
+  @override
+  State<_RenameDocumentDialog> createState() => _RenameDocumentDialogState();
+}
+
+class _RenameDocumentDialogState extends State<_RenameDocumentDialog> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialTitle);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Rename document'),
+      content: TextField(
+        controller: _controller,
+        autofocus: true,
+        decoration: const InputDecoration(labelText: 'Document title'),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(_controller.text),
+          child: const Text('Save'),
+        ),
+      ],
+    );
   }
 }
 
