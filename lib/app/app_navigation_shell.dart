@@ -61,15 +61,16 @@ class _AppNavigationShellState extends State<AppNavigationShell>
               curve: const Interval(0.0, 0.85, curve: Curves.easeOutCubic),
             ),
             child: SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(0, 0.2),
-                end: Offset.zero,
-              ).animate(
-                CurvedAnimation(
-                  parent: _entryAnimationController,
-                  curve: Curves.easeOutBack,
-                ),
-              ),
+              position:
+                  Tween<Offset>(
+                    begin: const Offset(0, 0.2),
+                    end: Offset.zero,
+                  ).animate(
+                    CurvedAnimation(
+                      parent: _entryAnimationController,
+                      curve: Curves.easeOutBack,
+                    ),
+                  ),
               child: _FloatingBottomNavBar(
                 selectedIndex: selectedIndex,
                 onDestinationTapped: _onDestinationTapped,
@@ -116,7 +117,7 @@ class _FloatingBottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final activeColorWithShadow = activeColor.withValues(alpha: 0.15);
+    const Color activeColorWithShadow = Colors.transparent;
 
     return Material(
       color: Colors.transparent,
@@ -131,11 +132,7 @@ class _FloatingBottomNavBar extends StatelessWidget {
           child: DecoratedBox(
             decoration: BoxDecoration(
               borderRadius: const BorderRadius.all(Radius.circular(999)),
-              color: theme.colorScheme.surface.withValues(alpha: 0.9),
-              border: Border.all(
-                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.35),
-                width: 1,
-              ),
+              color: Colors.transparent,
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.08),
@@ -146,15 +143,9 @@ class _FloatingBottomNavBar extends StatelessWidget {
               ],
             ),
             child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 8,
-                vertical: 8,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
               child: ConstrainedBox(
-                constraints: const BoxConstraints(
-                  minHeight: 62,
-                  maxHeight: 62,
-                ),
+                constraints: const BoxConstraints(minHeight: 62, maxHeight: 62),
                 child: Row(
                   children: List.generate(items.length, (index) {
                     final item = items[index];
@@ -192,8 +183,9 @@ class _FloatingBottomNavBar extends StatelessWidget {
                                   height: 46,
                                   child: Center(
                                     child: AnimatedSwitcher(
-                                      duration:
-                                          const Duration(milliseconds: 180),
+                                      duration: const Duration(
+                                        milliseconds: 180,
+                                      ),
                                       transitionBuilder: (child, animation) {
                                         return FadeTransition(
                                           opacity: animation,
@@ -214,7 +206,9 @@ class _FloatingBottomNavBar extends StatelessWidget {
                                         size: 28,
                                         color: isSelected
                                             ? activeColor
-                                            : theme.colorScheme.onSurfaceVariant,
+                                            : theme
+                                                  .colorScheme
+                                                  .onSurfaceVariant,
                                       ),
                                     ),
                                   ),
