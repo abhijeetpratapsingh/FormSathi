@@ -14,10 +14,10 @@ class ResizeImageUseCase {
     required LocalFileService localFileService,
     required ToolsRepository repository,
     Uuid? uuid,
-  })  : _processingService = processingService,
-        _localFileService = localFileService,
-        _repository = repository,
-        _uuid = uuid ?? const Uuid();
+  }) : _processingService = processingService,
+       _localFileService = localFileService,
+       _repository = repository,
+       _uuid = uuid ?? const Uuid();
 
   final ImageProcessingService _processingService;
   final LocalFileService _localFileService;
@@ -27,14 +27,21 @@ class ResizeImageUseCase {
   Future<ProcessedFile> call({
     required String sourcePath,
     required ResizePreset preset,
+    int? customWidth,
+    int? customHeight,
+    int? targetBytes,
   }) async {
     final result = await _processingService.resizeImage(
       sourcePath: sourcePath,
       preset: preset,
+      customWidth: customWidth,
+      customHeight: customHeight,
+      targetBytes: targetBytes,
     );
     final baseName = _sanitizeFileName(p.basenameWithoutExtension(sourcePath));
     final extension = result.extension;
-    final fileName = '${baseName}_${preset.name}_${DateTime.now().millisecondsSinceEpoch}$extension';
+    final fileName =
+        '${baseName}_${preset.name}_${DateTime.now().millisecondsSinceEpoch}$extension';
     final path = await _localFileService.writeBytes(
       bytes: result.bytes,
       fileName: fileName,
@@ -45,17 +52,18 @@ class ResizeImageUseCase {
       type: ProcessedFileType.resized,
       localPath: path,
       createdAt: DateTime.now(),
-      metadata: {
-        ...result.metadata,
-        'sourcePath': sourcePath,
-      },
+      metadata: {...result.metadata, 'sourcePath': sourcePath},
+      fileSizeBytes: result.bytes.length,
     );
     await _repository.saveProcessedFile(processed);
     return processed;
   }
 
   String _sanitizeFileName(String input) {
-    final sanitized = input.trim().replaceAll(RegExp(r'[^a-zA-Z0-9_\- ]'), '').replaceAll(' ', '_');
+    final sanitized = input
+        .trim()
+        .replaceAll(RegExp(r'[^a-zA-Z0-9_\- ]'), '')
+        .replaceAll(' ', '_');
     return sanitized.isEmpty ? 'form_sathi_image' : sanitized;
   }
 }

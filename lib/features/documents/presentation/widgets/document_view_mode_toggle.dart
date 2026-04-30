@@ -34,7 +34,9 @@ class DocumentViewModeToggle extends StatelessWidget {
           EdgeInsets.symmetric(horizontal: AppSizes.sm),
         ),
         visualDensity: VisualDensity.compact,
-        side: WidgetStatePropertyAll(BorderSide(color: theme.colorScheme.outline)),
+        side: WidgetStatePropertyAll(
+          BorderSide(color: theme.colorScheme.outline),
+        ),
       ),
     );
   }

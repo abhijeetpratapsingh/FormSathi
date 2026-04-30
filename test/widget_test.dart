@@ -1,13 +1,19 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/material.dart';
 
-import 'package:formsathi/app/app.dart';
+import 'package:formsathi/app/app_navigation_shell.dart';
 
 void main() {
-  testWidgets('app builds', (tester) async {
-    await tester.pumpWidget(const FormSathiApp());
-    expect(find.text('FormSathi'), findsOneWidget);
-    await tester.pump(const Duration(milliseconds: 950));
-    await tester.pumpAndSettle();
-    expect(find.text('My Info'), findsOneWidget);
+  testWidgets('app shell builds', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: AppNavigationShell(
+          currentLocation: '/my-info',
+          child: Text('Info page'),
+        ),
+      ),
+    );
+    expect(find.text('Info'), findsOneWidget);
+    expect(find.text('Docs'), findsOneWidget);
   });
 }

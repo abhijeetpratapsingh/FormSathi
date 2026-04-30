@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../../core/enums/document_category.dart';
+import '../../../../core/enums/document_side.dart';
+import '../../../../core/enums/document_type.dart';
 import '../../../../core/errors/app_exception.dart';
 import '../../../../core/services/local_file_service.dart';
 import '../../domain/entities/saved_document.dart';
@@ -20,12 +22,12 @@ class DocumentsCubit extends Cubit<DocumentsState> {
     required UpdateDocumentUseCase updateDocumentUseCase,
     required DeleteDocumentUseCase deleteDocumentUseCase,
     required LocalFileService localFileService,
-  })  : _getDocumentsUseCase = getDocumentsUseCase,
-        _saveDocumentUseCase = saveDocumentUseCase,
-        _updateDocumentUseCase = updateDocumentUseCase,
-        _deleteDocumentUseCase = deleteDocumentUseCase,
-        _localFileService = localFileService,
-        super(const DocumentsState());
+  }) : _getDocumentsUseCase = getDocumentsUseCase,
+       _saveDocumentUseCase = saveDocumentUseCase,
+       _updateDocumentUseCase = updateDocumentUseCase,
+       _deleteDocumentUseCase = deleteDocumentUseCase,
+       _localFileService = localFileService,
+       super(const DocumentsState());
 
   final GetDocumentsUseCase _getDocumentsUseCase;
   final SaveDocumentUseCase _saveDocumentUseCase;
@@ -35,16 +37,19 @@ class DocumentsCubit extends Cubit<DocumentsState> {
   final Uuid _uuid = const Uuid();
 
   Future<void> loadDocuments() async {
-    emit(state.copyWith(isLoading: true, clearFeedbackMessage: true, clearErrorMessage: true));
+    emit(
+      state.copyWith(
+        isLoading: true,
+        clearFeedbackMessage: true,
+        clearErrorMessage: true,
+      ),
+    );
     try {
       final documents = await _getDocumentsUseCase();
       emit(state.copyWith(documents: documents, isLoading: false));
     } catch (error) {
       emit(
-        state.copyWith(
-          isLoading: false,
-          errorMessage: _resolveError(error),
-        ),
+        state.copyWith(isLoading: false, errorMessage: _resolveError(error)),
       );
     }
   }
@@ -59,6 +64,48 @@ class DocumentsCubit extends Cubit<DocumentsState> {
       return;
     }
     emit(state.copyWith(selectedCategory: category));
+  }
+
+  void setTypeFilter(DocumentType? type) {
+    if (type == null) {
+      emit(state.copyWith(clearSelectedTypeFilter: true));
+      return;
+    }
+    emit(state.copyWith(selectedTypeFilter: type));
+  }
+
+  void selectDocumentType(DocumentType type) {
+    emit(
+      state.copyWith(
+        selectedType: type,
+        selectedSide: type.requiresSide
+            ? DocumentSide.front
+            : DocumentSide.none,
+        selectedNotes: '',
+        clearSelectedSourcePath: true,
+        clearFeedbackMessage: true,
+        clearErrorMessage: true,
+      ),
+    );
+  }
+
+  void selectSourcePath(String sourcePath) {
+    emit(state.copyWith(selectedSourcePath: sourcePath));
+  }
+
+  void updateDraftMetadata({DocumentSide? side, String? notes}) {
+    emit(state.copyWith(selectedSide: side, selectedNotes: notes));
+  }
+
+  void clearDraft() {
+    emit(
+      state.copyWith(
+        clearSelectedType: true,
+        clearSelectedSourcePath: true,
+        selectedSide: DocumentSide.none,
+        selectedNotes: '',
+      ),
+    );
   }
 
   void toggleViewMode() {
@@ -76,11 +123,34 @@ class DocumentsCubit extends Cubit<DocumentsState> {
     required String title,
     required DocumentCategory category,
   }) async {
-    emit(state.copyWith(isProcessing: true, clearFeedbackMessage: true, clearErrorMessage: true));
+    await addTypedDocument(
+      sourcePath: sourcePath,
+      title: title,
+      documentType: _documentTypeForCategory(category),
+      side: DocumentSide.none,
+    );
+  }
+
+  Future<void> addTypedDocument({
+    required String sourcePath,
+    required String title,
+    required DocumentType documentType,
+    DocumentSide? side,
+    String notes = '',
+  }) async {
+    emit(
+      state.copyWith(
+        isProcessing: true,
+        clearFeedbackMessage: true,
+        clearErrorMessage: true,
+      ),
+    );
     String? copiedPath;
     try {
+      final category = _categoryForDocumentType(documentType);
       final normalizedTitle = _normalizeTitle(title, category);
-      final fileName = _buildFileName(category, sourcePath);
+      final fileMetadata = await _localFileService.metadata(sourcePath);
+      final fileName = _buildFileName(documentType, sourcePath);
       copiedPath = await _localFileService.saveDocumentCopy(
         sourcePath: sourcePath,
         fileName: fileName,
@@ -90,16 +160,30 @@ class DocumentsCubit extends Cubit<DocumentsState> {
         id: _uuid.v4(),
         title: normalizedTitle,
         category: category,
+        documentType: documentType,
         localPath: copiedPath,
+        originalFileName: fileMetadata.originalFileName,
+        mimeType: fileMetadata.mimeType,
+        fileSizeBytes: fileMetadata.fileSizeBytes,
+        width: fileMetadata.width,
+        height: fileMetadata.height,
+        pageCount: fileMetadata.mimeType == 'application/pdf' ? 1 : null,
+        side: side ?? DocumentSide.none,
+        notes: notes.trim(),
         createdAt: now,
         updatedAt: now,
       );
       await _saveDocumentUseCase(document);
-      final updatedDocuments = [...state.documents, document]..sort(_sortByRecent);
+      final updatedDocuments = [...state.documents, document]
+        ..sort(_sortByRecent);
       emit(
         state.copyWith(
           documents: updatedDocuments,
           isProcessing: false,
+          clearSelectedType: true,
+          clearSelectedSourcePath: true,
+          selectedSide: DocumentSide.none,
+          selectedNotes: '',
           feedbackMessage: 'Document saved',
         ),
       );
@@ -112,10 +196,7 @@ class DocumentsCubit extends Cubit<DocumentsState> {
         }
       }
       emit(
-        state.copyWith(
-          isProcessing: false,
-          errorMessage: _resolveError(error),
-        ),
+        state.copyWith(isProcessing: false, errorMessage: _resolveError(error)),
       );
     }
   }
@@ -129,7 +210,13 @@ class DocumentsCubit extends Cubit<DocumentsState> {
       emit(state.copyWith(feedbackMessage: 'No changes made'));
       return;
     }
-    emit(state.copyWith(isProcessing: true, clearFeedbackMessage: true, clearErrorMessage: true));
+    emit(
+      state.copyWith(
+        isProcessing: true,
+        clearFeedbackMessage: true,
+        clearErrorMessage: true,
+      ),
+    );
     try {
       final updated = document.copyWith(
         title: normalizedTitle,
@@ -145,21 +232,25 @@ class DocumentsCubit extends Cubit<DocumentsState> {
       );
     } catch (error) {
       emit(
-        state.copyWith(
-          isProcessing: false,
-          errorMessage: _resolveError(error),
-        ),
+        state.copyWith(isProcessing: false, errorMessage: _resolveError(error)),
       );
     }
   }
 
   Future<void> deleteDocument(SavedDocument document) async {
-    emit(state.copyWith(isProcessing: true, clearFeedbackMessage: true, clearErrorMessage: true));
+    emit(
+      state.copyWith(
+        isProcessing: true,
+        clearFeedbackMessage: true,
+        clearErrorMessage: true,
+      ),
+    );
     try {
       await _deleteDocumentUseCase(document.id);
       await _localFileService.deleteFile(document.localPath);
-      final updatedDocuments =
-          state.documents.where((item) => item.id != document.id).toList(growable: false);
+      final updatedDocuments = state.documents
+          .where((item) => item.id != document.id)
+          .toList(growable: false);
       emit(
         state.copyWith(
           documents: updatedDocuments,
@@ -169,10 +260,7 @@ class DocumentsCubit extends Cubit<DocumentsState> {
       );
     } catch (error) {
       emit(
-        state.copyWith(
-          isProcessing: false,
-          errorMessage: _resolveError(error),
-        ),
+        state.copyWith(isProcessing: false, errorMessage: _resolveError(error)),
       );
     }
   }
@@ -184,13 +272,16 @@ class DocumentsCubit extends Cubit<DocumentsState> {
   }
 
   void _replaceDocument(SavedDocument document) {
-    final nextDocuments = state.documents.map((item) {
-      if (item.id == document.id) {
-        return document;
-      }
-      return item;
-    }).toList(growable: false)
-      ..sort(_sortByRecent);
+    final nextDocuments =
+        state.documents
+            .map((item) {
+              if (item.id == document.id) {
+                return document;
+              }
+              return item;
+            })
+            .toList(growable: false)
+          ..sort(_sortByRecent);
 
     emit(state.copyWith(documents: nextDocuments));
   }
@@ -201,9 +292,9 @@ class DocumentsCubit extends Cubit<DocumentsState> {
     return category.label;
   }
 
-  String _buildFileName(DocumentCategory category, String sourcePath) {
+  String _buildFileName(DocumentType documentType, String sourcePath) {
     final extension = _extractExtension(sourcePath);
-    final baseLabel = category.label;
+    final baseLabel = documentType.label;
     final safeLabel = baseLabel
         .toLowerCase()
         .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
@@ -213,7 +304,33 @@ class DocumentsCubit extends Cubit<DocumentsState> {
     final device = _sanitizeDeviceName(Platform.localHostname);
     final date = _formatDate(DateTime.now());
     final baseName = safeLabel.isEmpty ? 'document' : safeLabel;
-    return '${baseName}-${platform}-${device}-${date}$extension';
+    return '$baseName-$platform-$device-$date$extension';
+  }
+
+  DocumentCategory _categoryForDocumentType(DocumentType type) {
+    return switch (type) {
+      DocumentType.signature => DocumentCategory.signature,
+      DocumentType.passportPhoto => DocumentCategory.passportPhoto,
+      DocumentType.aadhaar => DocumentCategory.aadhaar,
+      DocumentType.pan => DocumentCategory.pan,
+      DocumentType.marksheet => DocumentCategory.marksheet,
+      DocumentType.certificate => DocumentCategory.certificate,
+      DocumentType.resume => DocumentCategory.other,
+      DocumentType.other => DocumentCategory.other,
+    };
+  }
+
+  DocumentType _documentTypeForCategory(DocumentCategory category) {
+    return switch (category) {
+      DocumentCategory.signature => DocumentType.signature,
+      DocumentCategory.passportPhoto => DocumentType.passportPhoto,
+      DocumentCategory.aadhaar => DocumentType.aadhaar,
+      DocumentCategory.pan => DocumentType.pan,
+      DocumentCategory.marksheet => DocumentType.marksheet,
+      DocumentCategory.certificate => DocumentType.certificate,
+      DocumentCategory.idProof => DocumentType.other,
+      DocumentCategory.other => DocumentType.other,
+    };
   }
 
   String _formatDate(DateTime dateTime) {
@@ -241,7 +358,8 @@ class DocumentsCubit extends Cubit<DocumentsState> {
     return fileName.substring(index);
   }
 
-  int _sortByRecent(SavedDocument a, SavedDocument b) => b.updatedAt.compareTo(a.updatedAt);
+  int _sortByRecent(SavedDocument a, SavedDocument b) =>
+      b.updatedAt.compareTo(a.updatedAt);
 
   String _resolveError(Object error) {
     if (error is AppException) return error.message;

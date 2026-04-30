@@ -21,7 +21,13 @@ Future<void> showProcessedFilePreviewDialog(
     builder: (context) {
       final theme = Theme.of(context);
       final isImage = _isImage(file.localPath);
-      final size = FileSizeFormatter.format(File(file.localPath).existsSync() ? File(file.localPath).lengthSync() : 0);
+      final size = FileSizeFormatter.format(
+        file.fileSizeBytes > 0
+            ? file.fileSizeBytes
+            : File(file.localPath).existsSync()
+            ? File(file.localPath).lengthSync()
+            : 0,
+      );
       return Padding(
         padding: EdgeInsets.only(
           left: AppSizes.md,
@@ -50,20 +56,37 @@ Future<void> showProcessedFilePreviewDialog(
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Icon(
-                  file.type == ProcessedFileType.pdf ? Icons.picture_as_pdf : Icons.insert_drive_file,
+                  file.type == ProcessedFileType.pdf
+                      ? Icons.picture_as_pdf
+                      : Icons.insert_drive_file,
                   size: 72,
                   color: theme.colorScheme.primary,
                 ),
               ),
             const SizedBox(height: AppSizes.md),
             Text(
-              file.metadata['title'] ?? file.metadata['preset'] ?? file.metadata['quality'] ?? file.type.label,
-              style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+              file.metadata['title'] ??
+                  file.metadata['preset'] ??
+                  file.metadata['quality'] ??
+                  file.type.label,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
             ),
             const SizedBox(height: 4),
             Text(file.localPath, style: theme.textTheme.bodySmall),
             const SizedBox(height: 4),
             Text('${file.createdAt.toDisplayDate()} • $size'),
+            if (file.metadata['dimensions'] != null) ...[
+              const SizedBox(height: 4),
+              Text('Dimensions: ${file.metadata['dimensions']}'),
+            ],
+            if (file.metadata['targetBytes'] != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                'Target: ${FileSizeFormatter.format(int.parse(file.metadata['targetBytes']!))}',
+              ),
+            ],
             const SizedBox(height: AppSizes.md),
             Row(
               children: [

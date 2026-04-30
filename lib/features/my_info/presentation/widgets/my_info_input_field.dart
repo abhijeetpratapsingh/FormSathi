@@ -11,6 +11,7 @@ class MyInfoInputField extends StatelessWidget {
     this.maxLines = 1,
     this.readOnly = false,
     this.obscureText = false,
+    this.displayText,
     this.onTap,
     this.onCopy,
     this.onToggleVisibility,
@@ -25,6 +26,7 @@ class MyInfoInputField extends StatelessWidget {
   final int maxLines;
   final bool readOnly;
   final bool obscureText;
+  final String? displayText;
   final VoidCallback? onTap;
   final VoidCallback? onCopy;
   final VoidCallback? onToggleVisibility;
@@ -47,12 +49,26 @@ class MyInfoInputField extends StatelessWidget {
     if (onToggleVisibility != null) {
       suffixIcons.add(
         IconButton(
-          icon: Icon(obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined),
+          icon: Icon(
+            obscureText
+                ? Icons.visibility_off_outlined
+                : Icons.visibility_outlined,
+          ),
           tooltip: obscureText ? 'Show $label' : 'Hide $label',
           padding: EdgeInsets.zero,
           visualDensity: VisualDensity.compact,
           onPressed: onToggleVisibility,
         ),
+      );
+    }
+
+    final displayText = this.displayText;
+    if (displayText != null) {
+      return TextFormField(
+        initialValue: displayText,
+        readOnly: true,
+        onTap: onTap,
+        decoration: _decoration(suffixIcons),
       );
     }
 
@@ -65,20 +81,21 @@ class MyInfoInputField extends StatelessWidget {
       obscureText: obscureText,
       onTap: onTap,
       validator: validator,
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hintText,
-        suffixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
-        suffixIcon: suffixIcons.isEmpty
-            ? null
-            : Padding(
-                padding: const EdgeInsetsDirectional.only(end: 4),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: suffixIcons,
-                ),
-              ),
-      ),
+      decoration: _decoration(suffixIcons),
+    );
+  }
+
+  InputDecoration _decoration(List<Widget> suffixIcons) {
+    return InputDecoration(
+      labelText: label,
+      hintText: hintText,
+      suffixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
+      suffixIcon: suffixIcons.isEmpty
+          ? null
+          : Padding(
+              padding: const EdgeInsetsDirectional.only(end: 4),
+              child: Row(mainAxisSize: MainAxisSize.min, children: suffixIcons),
+            ),
     );
   }
 }

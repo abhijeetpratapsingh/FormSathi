@@ -19,9 +19,10 @@ Your offline form-filling companion for storing personal details, keeping freque
 
 - Save form details once and reuse them with per-field copy and copy-all
 - Store passport photo, signature, Aadhaar, PAN, marksheets, certificates, and other images locally
-- Resize images with form-friendly presets including passport size and under-50KB targets
-- Compress images with quality presets
-- Convert multiple images into a single PDF
+- Add typed documents first, then export common form-ready files such as signature under 20KB, passport photo under 50KB, Aadhaar/PAN PDF, and certificate PDF under 300KB
+- Resize and compress images with target-KB presets plus custom dimensions
+- Convert multiple images into a single PDF with output target warnings
+- Protect local data with privacy onboarding, PIN app lock, masking, and delete-all-data controls
 - Fully offline, no login, no backend, no cloud sync
 
 ## Project Structure
@@ -60,6 +61,7 @@ flutter run
 - Camera permission is declared in `AndroidManifest.xml`.
 - iOS privacy usage strings are declared in `ios/Runner/Info.plist`.
 - All user data is stored on-device in app-local directories and Hive boxes.
+- Settings include app lock, privacy status, and local data wipe controls.
 - Saved files are organized under app documents data:
 
 ```text
@@ -71,9 +73,8 @@ app_data/
     pdfs/
 ```
 
-## Future Scope
+## Launch Workflow Notes
 
-- Google Drive backup
-- Premium version
-- Reminders
-- Checklist
+- Default navigation uses the persistent Info, Docs, Tools, and Settings tabs.
+- Add documents from Docs by choosing the document type first, then camera, gallery, or file import.
+- Use document preview actions for smart exports when a type supports them.

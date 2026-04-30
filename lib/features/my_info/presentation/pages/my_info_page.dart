@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
+import '../../../../core/utils/sensitive_value_formatter.dart';
 import '../../../../core/widgets/section_card.dart';
 import '../../../../core/widgets/empty_state_card.dart';
 import '../../domain/entities/user_info.dart';
@@ -13,10 +14,7 @@ import '../widgets/my_info_input_field.dart';
 import '../widgets/my_info_section_card.dart';
 
 class MyInfoPage extends StatefulWidget {
-  const MyInfoPage({
-    required this.cubit,
-    super.key,
-  });
+  const MyInfoPage({required this.cubit, super.key});
 
   final MyInfoCubit cubit;
 
@@ -130,7 +128,8 @@ class _MyInfoPageState extends State<MyInfoPage> {
 
   Future<void> _pickDate() async {
     final today = DateTime.now();
-    final initialDate = _selectedDob ?? DateTime(today.year - 18, today.month, today.day);
+    final initialDate =
+        _selectedDob ?? DateTime(today.year - 18, today.month, today.day);
     final picked = await showDatePicker(
       context: context,
       initialDate: initialDate,
@@ -186,15 +185,15 @@ class _MyInfoPageState extends State<MyInfoPage> {
           }
 
           return Scaffold(
-            appBar: AppBar(
-              title: const Text('My Info'),
-            ),
+            appBar: AppBar(title: const Text('My Info')),
             body: SafeArea(
-              child: state.status == MyInfoStatus.loading || state.status == MyInfoStatus.initial
+              child:
+                  state.status == MyInfoStatus.loading ||
+                      state.status == MyInfoStatus.initial
                   ? const Center(child: CircularProgressIndicator())
                   : Form(
                       key: _formKey,
-                    child: ListView(
+                      child: ListView(
                         padding: const EdgeInsets.all(16),
                         children: [
                           SectionCard(
@@ -229,7 +228,9 @@ class _MyInfoPageState extends State<MyInfoPage> {
                                   : AppStrings.myInfoEmpty,
                               action: state.status == MyInfoStatus.failure
                                   ? TextButton.icon(
-                                      onPressed: state.isBusy ? null : widget.cubit.loadUserInfo,
+                                      onPressed: state.isBusy
+                                          ? null
+                                          : widget.cubit.loadUserInfo,
                                       icon: const Icon(Icons.refresh_rounded),
                                       label: const Text('Try Again'),
                                     )
@@ -239,12 +240,15 @@ class _MyInfoPageState extends State<MyInfoPage> {
                           ],
                           MyInfoSectionCard(
                             title: 'Quick Actions',
-                            subtitle: 'Copy any field or save everything offline.',
+                            subtitle:
+                                'Copy any field or save everything offline.',
                             trailing: state.isSaving
                                 ? const SizedBox(
                                     height: 24,
                                     width: 24,
-                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
                                   )
                                 : null,
                             child: Wrap(
@@ -259,7 +263,9 @@ class _MyInfoPageState extends State<MyInfoPage> {
                                 OutlinedButton.icon(
                                   onPressed: state.isBusy
                                       ? null
-                                      : () => context.read<MyInfoCubit>().copyAllInfo(_buildUserInfo()),
+                                      : () => context
+                                            .read<MyInfoCubit>()
+                                            .copyAllInfo(_buildUserInfo()),
                                   icon: const Icon(Icons.copy_all_rounded),
                                   label: const Text('Copy All Info'),
                                 ),
@@ -275,7 +281,8 @@ class _MyInfoPageState extends State<MyInfoPage> {
                                   label: 'Full Name',
                                   controller: _fullNameController,
                                   textCapitalization: TextCapitalization.words,
-                                  onCopy: () => context.read<MyInfoCubit>().copyField(
+                                  onCopy: () =>
+                                      context.read<MyInfoCubit>().copyField(
                                         label: 'Full Name',
                                         value: _fullNameController.text,
                                       ),
@@ -285,7 +292,8 @@ class _MyInfoPageState extends State<MyInfoPage> {
                                   label: "Father's Name",
                                   controller: _fatherNameController,
                                   textCapitalization: TextCapitalization.words,
-                                  onCopy: () => context.read<MyInfoCubit>().copyField(
+                                  onCopy: () =>
+                                      context.read<MyInfoCubit>().copyField(
                                         label: "Father's Name",
                                         value: _fatherNameController.text,
                                       ),
@@ -295,7 +303,8 @@ class _MyInfoPageState extends State<MyInfoPage> {
                                   label: "Mother's Name",
                                   controller: _motherNameController,
                                   textCapitalization: TextCapitalization.words,
-                                  onCopy: () => context.read<MyInfoCubit>().copyField(
+                                  onCopy: () =>
+                                      context.read<MyInfoCubit>().copyField(
                                         label: "Mother's Name",
                                         value: _motherNameController.text,
                                       ),
@@ -304,7 +313,8 @@ class _MyInfoPageState extends State<MyInfoPage> {
                                 MyInfoDateField(
                                   controller: _dobController,
                                   onPickDate: _pickDate,
-                                  onCopy: () => context.read<MyInfoCubit>().copyField(
+                                  onCopy: () =>
+                                      context.read<MyInfoCubit>().copyField(
                                         label: 'DOB',
                                         value: _dobController.text,
                                       ),
@@ -314,7 +324,8 @@ class _MyInfoPageState extends State<MyInfoPage> {
                                   label: 'Gender',
                                   controller: _genderController,
                                   textCapitalization: TextCapitalization.words,
-                                  onCopy: () => context.read<MyInfoCubit>().copyField(
+                                  onCopy: () =>
+                                      context.read<MyInfoCubit>().copyField(
                                         label: 'Gender',
                                         value: _genderController.text,
                                       ),
@@ -332,7 +343,8 @@ class _MyInfoPageState extends State<MyInfoPage> {
                                   controller: _phoneController,
                                   keyboardType: TextInputType.phone,
                                   validator: _optionalPhoneValidator,
-                                  onCopy: () => context.read<MyInfoCubit>().copyField(
+                                  onCopy: () =>
+                                      context.read<MyInfoCubit>().copyField(
                                         label: 'Phone',
                                         value: _phoneController.text,
                                       ),
@@ -343,7 +355,8 @@ class _MyInfoPageState extends State<MyInfoPage> {
                                   controller: _emailController,
                                   keyboardType: TextInputType.emailAddress,
                                   validator: _optionalEmailValidator,
-                                  onCopy: () => context.read<MyInfoCubit>().copyField(
+                                  onCopy: () =>
+                                      context.read<MyInfoCubit>().copyField(
                                         label: 'Email',
                                         value: _emailController.text,
                                       ),
@@ -353,8 +366,10 @@ class _MyInfoPageState extends State<MyInfoPage> {
                                   label: 'Address',
                                   controller: _addressController,
                                   maxLines: 3,
-                                  textCapitalization: TextCapitalization.sentences,
-                                  onCopy: () => context.read<MyInfoCubit>().copyField(
+                                  textCapitalization:
+                                      TextCapitalization.sentences,
+                                  onCopy: () =>
+                                      context.read<MyInfoCubit>().copyField(
                                         label: 'Address',
                                         value: _addressController.text,
                                       ),
@@ -364,7 +379,8 @@ class _MyInfoPageState extends State<MyInfoPage> {
                                   label: 'City',
                                   controller: _cityController,
                                   textCapitalization: TextCapitalization.words,
-                                  onCopy: () => context.read<MyInfoCubit>().copyField(
+                                  onCopy: () =>
+                                      context.read<MyInfoCubit>().copyField(
                                         label: 'City',
                                         value: _cityController.text,
                                       ),
@@ -374,7 +390,8 @@ class _MyInfoPageState extends State<MyInfoPage> {
                                   label: 'State',
                                   controller: _stateController,
                                   textCapitalization: TextCapitalization.words,
-                                  onCopy: () => context.read<MyInfoCubit>().copyField(
+                                  onCopy: () =>
+                                      context.read<MyInfoCubit>().copyField(
                                         label: 'State',
                                         value: _stateController.text,
                                       ),
@@ -384,7 +401,8 @@ class _MyInfoPageState extends State<MyInfoPage> {
                                   label: 'Pin Code',
                                   controller: _pinCodeController,
                                   keyboardType: TextInputType.number,
-                                  onCopy: () => context.read<MyInfoCubit>().copyField(
+                                  onCopy: () =>
+                                      context.read<MyInfoCubit>().copyField(
                                         label: 'Pin Code',
                                         value: _pinCodeController.text,
                                       ),
@@ -402,9 +420,16 @@ class _MyInfoPageState extends State<MyInfoPage> {
                                   label: 'Aadhaar',
                                   controller: _aadhaarController,
                                   keyboardType: TextInputType.number,
-                                  obscureText: state.isAadhaarObscured,
-                                  onToggleVisibility: context.read<MyInfoCubit>().toggleAadhaarVisibility,
-                                  onCopy: () => context.read<MyInfoCubit>().copyField(
+                                  displayText: state.isAadhaarObscured
+                                      ? SensitiveValueFormatter.maskLast4(
+                                          _aadhaarController.text,
+                                        )
+                                      : null,
+                                  onToggleVisibility: context
+                                      .read<MyInfoCubit>()
+                                      .toggleAadhaarVisibility,
+                                  onCopy: () =>
+                                      context.read<MyInfoCubit>().copyField(
                                         label: 'Aadhaar',
                                         value: _aadhaarController.text,
                                       ),
@@ -414,9 +439,16 @@ class _MyInfoPageState extends State<MyInfoPage> {
                                   label: 'PAN',
                                   controller: _panController,
                                   keyboardType: TextInputType.text,
-                                  obscureText: state.isPanObscured,
-                                  onToggleVisibility: context.read<MyInfoCubit>().togglePanVisibility,
-                                  onCopy: () => context.read<MyInfoCubit>().copyField(
+                                  displayText: state.isPanObscured
+                                      ? SensitiveValueFormatter.maskLast4(
+                                          _panController.text,
+                                        )
+                                      : null,
+                                  onToggleVisibility: context
+                                      .read<MyInfoCubit>()
+                                      .togglePanVisibility,
+                                  onCopy: () =>
+                                      context.read<MyInfoCubit>().copyField(
                                         label: 'PAN',
                                         value: _panController.text,
                                       ),
@@ -433,7 +465,8 @@ class _MyInfoPageState extends State<MyInfoPage> {
                                   label: 'School/College',
                                   controller: _schoolCollegeController,
                                   textCapitalization: TextCapitalization.words,
-                                  onCopy: () => context.read<MyInfoCubit>().copyField(
+                                  onCopy: () =>
+                                      context.read<MyInfoCubit>().copyField(
                                         label: 'School/College',
                                         value: _schoolCollegeController.text,
                                       ),
@@ -443,7 +476,8 @@ class _MyInfoPageState extends State<MyInfoPage> {
                                   label: 'Qualification',
                                   controller: _qualificationController,
                                   textCapitalization: TextCapitalization.words,
-                                  onCopy: () => context.read<MyInfoCubit>().copyField(
+                                  onCopy: () =>
+                                      context.read<MyInfoCubit>().copyField(
                                         label: 'Qualification',
                                         value: _qualificationController.text,
                                       ),
@@ -453,7 +487,8 @@ class _MyInfoPageState extends State<MyInfoPage> {
                                   label: 'Category',
                                   controller: _categoryController,
                                   textCapitalization: TextCapitalization.words,
-                                  onCopy: () => context.read<MyInfoCubit>().copyField(
+                                  onCopy: () =>
+                                      context.read<MyInfoCubit>().copyField(
                                         label: 'Category',
                                         value: _categoryController.text,
                                       ),
@@ -463,7 +498,8 @@ class _MyInfoPageState extends State<MyInfoPage> {
                                   label: 'Nationality',
                                   controller: _nationalityController,
                                   textCapitalization: TextCapitalization.words,
-                                  onCopy: () => context.read<MyInfoCubit>().copyField(
+                                  onCopy: () =>
+                                      context.read<MyInfoCubit>().copyField(
                                         label: 'Nationality',
                                         value: _nationalityController.text,
                                       ),
@@ -474,8 +510,11 @@ class _MyInfoPageState extends State<MyInfoPage> {
                           const SizedBox(height: 24),
                           Text(
                             AppStrings.privacyMessage,
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
                                 ),
                             textAlign: TextAlign.center,
                           ),

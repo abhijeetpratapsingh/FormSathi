@@ -9,22 +9,36 @@ class DocumentsRepositoryImpl implements DocumentsRepository {
   final DocumentsLocalDataSource _localDataSource;
 
   @override
+  Future<void> clearDocuments() => _localDataSource.clearDocuments();
+
+  @override
   Future<void> deleteDocument(String id) => _localDataSource.deleteDocument(id);
 
   @override
   Future<List<SavedDocument>> getDocuments() async {
-    final items = _localDataSource.getDocuments().map((item) => item.toEntity()).toList();
+    final items = _localDataSource
+        .getDocuments()
+        .map((item) => item.toEntity())
+        .toList();
     items.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
     return items;
   }
 
   @override
   Future<void> saveDocument(SavedDocument document) {
-    return _localDataSource.saveDocument(SavedDocumentModel.fromEntity(document));
+    return _localDataSource.saveDocument(
+      SavedDocumentModel.fromEntity(document),
+    );
   }
 
   @override
   Future<void> updateDocument(SavedDocument document) {
-    return _localDataSource.saveDocument(SavedDocumentModel.fromEntity(document));
+    return _localDataSource.saveDocument(
+      SavedDocumentModel.fromEntity(document),
+    );
   }
+
+  @override
+  Future<void> migrateCategoryOnlyDocuments() =>
+      _localDataSource.migrateCategoryOnlyDocuments();
 }

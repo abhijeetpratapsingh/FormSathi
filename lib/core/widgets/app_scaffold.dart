@@ -22,10 +22,7 @@ class AppScaffold extends StatelessWidget {
       appBar: AppBar(title: Text(title), actions: actions),
       floatingActionButton: floatingActionButton,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSizes.md),
-          child: body,
-        ),
+        child: Padding(padding: const EdgeInsets.all(AppSizes.md), child: body),
       ),
     );
   }

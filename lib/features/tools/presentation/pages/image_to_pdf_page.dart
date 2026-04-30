@@ -11,6 +11,7 @@ import '../cubit/image_to_pdf_cubit.dart';
 import '../cubit/image_to_pdf_state.dart';
 import '../cubit/tools_cubit.dart';
 import '../widgets/selected_pdf_images_list.dart';
+import '../widgets/target_size_selector.dart';
 import '../widgets/tool_section_header.dart';
 
 class ImageToPdfPage extends StatefulWidget {
@@ -46,7 +47,9 @@ class _ImageToPdfPageState extends State<ImageToPdfPage> {
             previous.pdfTitle != current.pdfTitle,
         listener: (context, state) {
           if (state.errorMessage != null) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.errorMessage!)));
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.errorMessage!)));
             context.read<ImageToPdfCubit>().clearError();
           }
           if (state.hasResult) {
@@ -64,14 +67,17 @@ class _ImageToPdfPageState extends State<ImageToPdfPage> {
             children: [
               const ToolSectionHeader(
                 title: 'Build a PDF from images',
-                subtitle: 'Add multiple pages, reorder them, and create a shareable PDF.',
+                subtitle:
+                    'Add multiple pages, reorder them, and create a shareable PDF.',
               ),
               const SizedBox(height: AppSizes.sm),
               Row(
                 children: [
                   Expanded(
                     child: OutlinedButton.icon(
-                      onPressed: state.isPicking ? null : () => _selectFromGallery(context),
+                      onPressed: state.isPicking
+                          ? null
+                          : () => _selectFromGallery(context),
                       icon: const Icon(Icons.collections_outlined),
                       label: const Text('Add images'),
                     ),
@@ -79,7 +85,11 @@ class _ImageToPdfPageState extends State<ImageToPdfPage> {
                   const SizedBox(width: AppSizes.sm),
                   Expanded(
                     child: OutlinedButton.icon(
-                      onPressed: state.isPicking ? null : () => context.read<ImageToPdfCubit>().addImageFromCamera(),
+                      onPressed: state.isPicking
+                          ? null
+                          : () => context
+                                .read<ImageToPdfCubit>()
+                                .addImageFromCamera(),
                       icon: const Icon(Icons.photo_camera_outlined),
                       label: const Text('Camera'),
                     ),
@@ -94,7 +104,8 @@ class _ImageToPdfPageState extends State<ImageToPdfPage> {
                     labelText: 'PDF name',
                     hintText: 'Enter PDF file name',
                   ),
-                  onChanged: (value) => context.read<ImageToPdfCubit>().setTitle(value),
+                  onChanged: (value) =>
+                      context.read<ImageToPdfCubit>().setTitle(value),
                 ),
               ),
               const SizedBox(height: AppSizes.md),
@@ -102,12 +113,20 @@ class _ImageToPdfPageState extends State<ImageToPdfPage> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Selected pages', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                    Text(
+                      'Selected pages',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                     const SizedBox(height: AppSizes.sm),
                     SelectedPdfImagesList(
                       imagePaths: state.imagePaths,
-                      onReorder: (oldIndex, newIndex) => context.read<ImageToPdfCubit>().reorderImages(oldIndex, newIndex),
-                      onRemove: (index) => context.read<ImageToPdfCubit>().removeImageAt(index),
+                      onReorder: (oldIndex, newIndex) => context
+                          .read<ImageToPdfCubit>()
+                          .reorderImages(oldIndex, newIndex),
+                      onRemove: (index) =>
+                          context.read<ImageToPdfCubit>().removeImageAt(index),
                     ),
                   ],
                 )
@@ -115,16 +134,35 @@ class _ImageToPdfPageState extends State<ImageToPdfPage> {
                 const EmptyStateCard(
                   icon: Icons.picture_as_pdf_outlined,
                   title: 'No images selected',
-                  message: 'Add multiple images to create a PDF for form submission.',
+                  message:
+                      'Add multiple images to create a PDF for form submission.',
                 ),
               const SizedBox(height: AppSizes.md),
+              const ToolSectionHeader(
+                title: 'Output target',
+                subtitle:
+                    'Compress before saving when forms need a smaller PDF.',
+              ),
+              TargetSizeSelector(
+                selectedKb: state.targetBytes == null
+                    ? null
+                    : state.targetBytes! ~/ 1024,
+                onSelected: (kb) =>
+                    context.read<ImageToPdfCubit>().setTargetKb(kb),
+              ),
+              const SizedBox(height: AppSizes.md),
               FilledButton.icon(
-                onPressed: state.isGenerating || !state.hasSelection ? null : () => context.read<ImageToPdfCubit>().generatePdf(),
+                onPressed: state.isGenerating || !state.hasSelection
+                    ? null
+                    : () => context.read<ImageToPdfCubit>().generatePdf(),
                 icon: state.isGenerating
                     ? const SizedBox(
                         width: 16,
                         height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
                       )
                     : const Icon(Icons.save_outlined),
                 label: const Text('Generate PDF'),
@@ -135,9 +173,24 @@ class _ImageToPdfPageState extends State<ImageToPdfPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('PDF saved to device storage', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                      Text(
+                        'PDF saved to device storage',
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w700),
+                      ),
                       const SizedBox(height: 8),
-                      Text('Final size: ${FileSizeFormatter.format(state.outputBytes ?? 0)}'),
+                      Text(
+                        'Final size: ${FileSizeFormatter.format(state.outputBytes ?? 0)}',
+                      ),
+                      if (state.outputWarning != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          state.outputWarning!,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 4),
                       Text(state.outputPath ?? ''),
                       const SizedBox(height: AppSizes.md),

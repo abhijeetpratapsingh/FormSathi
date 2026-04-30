@@ -11,4 +11,6 @@ class MyInfoLocalDataSource {
   UserInfoModel? getUserInfo() => _box.get(_key);
 
   Future<void> saveUserInfo(UserInfoModel model) => _box.put(_key, model);
+
+  Future<void> clearUserInfo() => _box.delete(_key);
 }

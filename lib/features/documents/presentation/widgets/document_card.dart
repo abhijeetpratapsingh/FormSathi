@@ -49,8 +49,8 @@ class DocumentCard extends StatelessWidget {
             ],
           )
         : Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               Hero(
                 tag: document.id,
                 child: _Thumbnail(image: image, fullWidth: true),
@@ -113,7 +113,8 @@ class _Thumbnail extends StatelessWidget {
         height: height,
         width: width,
         alignment: Alignment.center,
-        child: image ??
+        child:
+            image ??
             Icon(
               Icons.insert_drive_file_rounded,
               size: 32,
@@ -143,6 +144,9 @@ class _Info extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final dateText = document.updatedAt.toDisplayDate();
+    final sizeText = FileSizeFormatter.format(
+      document.fileSizeBytes > 0 ? document.fileSizeBytes : size,
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -150,8 +154,21 @@ class _Info extends StatelessWidget {
           document.title,
           maxLines: compactActions ? 1 : 2,
           overflow: TextOverflow.ellipsis,
-          style: (compactActions ? theme.textTheme.titleSmall : theme.textTheme.titleMedium)
-              ?.copyWith(fontWeight: FontWeight.w700),
+          style:
+              (compactActions
+                      ? theme.textTheme.titleSmall
+                      : theme.textTheme.titleMedium)
+                  ?.copyWith(fontWeight: FontWeight.w700),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          document.documentType.label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         const SizedBox(height: 6),
         if (!compactActions) ...[
@@ -159,8 +176,11 @@ class _Info extends StatelessWidget {
             spacing: 8,
             runSpacing: 8,
             children: [
-              _MetaChip(label: document.category.label, compact: false),
-              _MetaChip(label: FileSizeFormatter.format(size), compact: false),
+              _MetaChip(label: sizeText, compact: false),
+              if (document.side.label != 'None')
+                _MetaChip(label: document.side.label, compact: false),
+              if (document.notes.isNotEmpty)
+                const _MetaChip(label: 'Notes', compact: false),
             ],
           ),
           const SizedBox(height: AppSizes.sm),
@@ -189,12 +209,38 @@ class _Info extends StatelessWidget {
               ),
             ],
           ),
-        ] else
-          _CompactMenu(
-            onRename: onRename,
-            onDelete: onDelete,
+        ] else ...[
+          Wrap(
+            spacing: 6,
+            runSpacing: 4,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              _InlineMeta(text: sizeText),
+              if (document.side.label != 'None')
+                _InlineMeta(text: document.side.label),
+              if (document.notes.isNotEmpty) const _InlineMeta(text: 'Notes'),
+            ],
           ),
+          const SizedBox(height: 4),
+          _CompactMenu(onRename: onRename, onDelete: onDelete),
+        ],
       ],
+    );
+  }
+}
+
+class _InlineMeta extends StatelessWidget {
+  const _InlineMeta({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
+      ),
     );
   }
 }
@@ -210,7 +256,9 @@ class _MetaChip extends StatelessWidget {
     final theme = Theme.of(context);
     return Chip(
       label: Text(label),
-      labelStyle: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w600),
+      labelStyle: theme.textTheme.labelSmall?.copyWith(
+        fontWeight: FontWeight.w600,
+      ),
       visualDensity: compact ? VisualDensity.compact : VisualDensity.standard,
       side: BorderSide(color: theme.colorScheme.outline),
       backgroundColor: Colors.white,
@@ -251,10 +299,7 @@ class _ActionButton extends StatelessWidget {
 }
 
 class _CompactMenu extends StatelessWidget {
-  const _CompactMenu({
-    required this.onRename,
-    required this.onDelete,
-  });
+  const _CompactMenu({required this.onRename, required this.onDelete});
 
   final VoidCallback onRename;
   final VoidCallback onDelete;
@@ -271,25 +316,22 @@ class _CompactMenu extends StatelessWidget {
         }
       },
       itemBuilder: (context) => const [
-        PopupMenuItem(
-          value: 'rename',
-          child: Text('Rename'),
-        ),
-        PopupMenuItem(
-          value: 'delete',
-          child: Text('Delete'),
-        ),
+        PopupMenuItem(value: 'rename', child: Text('Rename')),
+        PopupMenuItem(value: 'delete', child: Text('Delete')),
       ],
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.more_horiz, color: Theme.of(context).colorScheme.onSurfaceVariant),
+          Icon(
+            Icons.more_horiz,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
           const SizedBox(width: 4),
           Text(
             'Actions',
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
         ],
       ),

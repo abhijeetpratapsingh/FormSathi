@@ -16,29 +16,30 @@ class AppTheme {
     final border = AppColors.border;
     final ring = AppColors.ring;
 
-    final colorScheme = ColorScheme(
-      brightness: Brightness.light,
-      primary: primary,
-      onPrimary: Colors.white,
-      secondary: accent,
-      onSecondary: Colors.white,
-      tertiary: secondarySurface,
-      onTertiary: foreground,
-      error: destructive,
-      onError: Colors.white,
-      surface: background,
-      onSurface: foreground,
-      surfaceContainerHighest: muted,
-      onSurfaceVariant: foreground.withValues(alpha: 0.7),
-      outline: border,
-    ).copyWith(
-      primaryContainer: secondarySurface,
-      onPrimaryContainer: foreground,
-      secondaryContainer: secondarySurface,
-      onSecondaryContainer: foreground,
-      tertiaryContainer: muted,
-      onTertiaryContainer: foreground,
-    );
+    final colorScheme =
+        ColorScheme(
+          brightness: Brightness.light,
+          primary: primary,
+          onPrimary: Colors.white,
+          secondary: accent,
+          onSecondary: Colors.white,
+          tertiary: secondarySurface,
+          onTertiary: foreground,
+          error: destructive,
+          onError: Colors.white,
+          surface: background,
+          onSurface: foreground,
+          surfaceContainerHighest: muted,
+          onSurfaceVariant: foreground.withValues(alpha: 0.7),
+          outline: border,
+        ).copyWith(
+          primaryContainer: secondarySurface,
+          onPrimaryContainer: foreground,
+          secondaryContainer: secondarySurface,
+          onSecondaryContainer: foreground,
+          tertiaryContainer: muted,
+          onTertiaryContainer: foreground,
+        );
 
     final base = ThemeData(
       useMaterial3: true,
@@ -47,11 +48,7 @@ class AppTheme {
       fontFamily: 'Plus Jakarta Sans',
       textTheme: Typography.blackMountainView.apply(
         fontFamily: 'Plus Jakarta Sans',
-        fontFamilyFallback: const [
-          'ui-sans-serif',
-          'system-ui',
-          'sans-serif',
-        ],
+        fontFamilyFallback: const ['ui-sans-serif', 'system-ui', 'sans-serif'],
       ),
       snackBarTheme: const SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
@@ -96,9 +93,7 @@ class AppTheme {
       iconTheme: IconThemeData(color: foreground.withValues(alpha: 0.9)),
       dividerTheme: DividerThemeData(color: border),
       chipTheme: base.chipTheme.copyWith(
-        shape: RoundedRectangleBorder(
-          borderRadius: AppSizes.fieldRadius,
-        ),
+        shape: const RoundedRectangleBorder(borderRadius: AppSizes.fieldRadius),
         side: BorderSide(color: border),
         backgroundColor: secondarySurface,
         labelStyle: base.textTheme.labelMedium?.copyWith(
@@ -108,7 +103,9 @@ class AppTheme {
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          shape: RoundedRectangleBorder(borderRadius: AppSizes.fieldRadius),
+          shape: const RoundedRectangleBorder(
+            borderRadius: AppSizes.fieldRadius,
+          ),
           backgroundColor: primary,
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
@@ -116,7 +113,9 @@ class AppTheme {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          shape: RoundedRectangleBorder(borderRadius: AppSizes.fieldRadius),
+          shape: const RoundedRectangleBorder(
+            borderRadius: AppSizes.fieldRadius,
+          ),
           side: BorderSide(color: border),
           foregroundColor: foreground,
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
@@ -124,14 +123,16 @@ class AppTheme {
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          shape: RoundedRectangleBorder(borderRadius: AppSizes.fieldRadius),
+          shape: const RoundedRectangleBorder(
+            borderRadius: AppSizes.fieldRadius,
+          ),
           foregroundColor: primary,
         ),
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: primary,
         foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: AppSizes.fieldRadius),
+        shape: const RoundedRectangleBorder(borderRadius: AppSizes.fieldRadius),
       ),
     );
   }

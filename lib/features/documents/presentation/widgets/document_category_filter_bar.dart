@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/constants/app_sizes.dart';
-import '../../../../core/enums/document_category.dart';
+import '../../../../core/enums/document_type.dart';
 
 class DocumentCategoryFilterBar extends StatelessWidget {
   const DocumentCategoryFilterBar({
-    required this.selectedCategory,
+    required this.selectedType,
     required this.onSelected,
     super.key,
   });
 
-  final DocumentCategory? selectedCategory;
-  final ValueChanged<DocumentCategory?> onSelected;
+  final DocumentType? selectedType;
+  final ValueChanged<DocumentType?> onSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -23,15 +23,15 @@ class DocumentCategoryFilterBar extends StatelessWidget {
         children: [
           _FilterChip(
             label: 'All',
-            selected: selectedCategory == null,
+            selected: selectedType == null,
             onTap: () => onSelected(null),
           ),
           const SizedBox(width: AppSizes.sm),
-          for (final category in DocumentCategory.values) ...[
+          for (final type in DocumentType.values) ...[
             _FilterChip(
-              label: category.label,
-              selected: selectedCategory == category,
-              onTap: () => onSelected(category),
+              label: type.label,
+              selected: selectedType == type,
+              onTap: () => onSelected(type),
             ),
             const SizedBox(width: AppSizes.sm),
           ],
@@ -60,12 +60,14 @@ class _FilterChip extends StatelessWidget {
       selected: selected,
       onSelected: (_) => onTap(),
       labelStyle: TextStyle(
-        color: selected ? theme.colorScheme.onPrimary : theme.colorScheme.onSurface,
+        color: selected
+            ? theme.colorScheme.onPrimary
+            : theme.colorScheme.onSurface,
         fontWeight: FontWeight.w600,
       ),
       selectedColor: theme.colorScheme.primary,
       side: BorderSide(color: theme.colorScheme.outline),
-      shape: RoundedRectangleBorder(borderRadius: AppSizes.fieldRadius),
+      shape: const RoundedRectangleBorder(borderRadius: AppSizes.fieldRadius),
     );
   }
 }

@@ -32,7 +32,12 @@ class SelectedPdfImagesList extends StatelessWidget {
           child: ListTile(
             leading: ClipRRect(
               borderRadius: BorderRadius.circular(12),
-              child: Image.file(File(path), width: 48, height: 48, fit: BoxFit.cover),
+              child: Image.file(
+                File(path),
+                width: 48,
+                height: 48,
+                fit: BoxFit.cover,
+              ),
             ),
             title: Text(path.split('/').last),
             subtitle: Text('Page ${index + 1}'),

@@ -10,6 +10,9 @@ class ResizeImageState extends Equatable {
     this.outputBytes,
     this.outputPath,
     this.preset = ResizePreset.passportSize,
+    this.customWidth,
+    this.customHeight,
+    this.customTargetBytes,
     this.processedFile,
     this.isPicking = false,
     this.isProcessing = false,
@@ -21,6 +24,9 @@ class ResizeImageState extends Equatable {
   final int? outputBytes;
   final String? outputPath;
   final ResizePreset preset;
+  final int? customWidth;
+  final int? customHeight;
+  final int? customTargetBytes;
   final ProcessedFile? processedFile;
   final bool isPicking;
   final bool isProcessing;
@@ -35,6 +41,12 @@ class ResizeImageState extends Equatable {
     int? outputBytes,
     String? outputPath,
     ResizePreset? preset,
+    int? customWidth,
+    bool clearCustomWidth = false,
+    int? customHeight,
+    bool clearCustomHeight = false,
+    int? customTargetBytes,
+    bool clearCustomTargetBytes = false,
     ProcessedFile? processedFile,
     bool? isPicking,
     bool? isProcessing,
@@ -48,6 +60,13 @@ class ResizeImageState extends Equatable {
       outputBytes: clearResult ? null : (outputBytes ?? this.outputBytes),
       outputPath: clearResult ? null : (outputPath ?? this.outputPath),
       preset: preset ?? this.preset,
+      customWidth: clearCustomWidth ? null : (customWidth ?? this.customWidth),
+      customHeight: clearCustomHeight
+          ? null
+          : (customHeight ?? this.customHeight),
+      customTargetBytes: clearCustomTargetBytes
+          ? null
+          : (customTargetBytes ?? this.customTargetBytes),
       processedFile: clearResult ? null : (processedFile ?? this.processedFile),
       isPicking: isPicking ?? this.isPicking,
       isProcessing: isProcessing ?? this.isProcessing,
@@ -57,14 +76,17 @@ class ResizeImageState extends Equatable {
 
   @override
   List<Object?> get props => [
-        sourcePath,
-        originalBytes,
-        outputBytes,
-        outputPath,
-        preset,
-        processedFile,
-        isPicking,
-        isProcessing,
-        errorMessage,
-      ];
+    sourcePath,
+    originalBytes,
+    outputBytes,
+    outputPath,
+    preset,
+    customWidth,
+    customHeight,
+    customTargetBytes,
+    processedFile,
+    isPicking,
+    isProcessing,
+    errorMessage,
+  ];
 }

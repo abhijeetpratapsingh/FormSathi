@@ -18,11 +18,13 @@ class ToolsCubit extends Cubit<ToolsState> {
     emit(state.copyWith(isLoading: true, errorMessage: null));
     try {
       final files = await _loadRecentProcessedFilesUseCase.call();
-      emit(state.copyWith(
-        isLoading: false,
-        recentFiles: files.take(12).toList(growable: false),
-        errorMessage: null,
-      ));
+      emit(
+        state.copyWith(
+          isLoading: false,
+          recentFiles: files.take(12).toList(growable: false),
+          errorMessage: null,
+        ),
+      );
     } catch (error) {
       emit(state.copyWith(isLoading: false, errorMessage: error.toString()));
     }

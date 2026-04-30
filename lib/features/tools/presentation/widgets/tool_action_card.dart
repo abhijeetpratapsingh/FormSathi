@@ -47,14 +47,22 @@ class ToolActionCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                    Text(
+                      title,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                     const SizedBox(height: 4),
                     Text(subtitle, style: theme.textTheme.bodyMedium),
                   ],
                 ),
               ),
               const SizedBox(width: 8),
-              Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant),
+              Icon(
+                Icons.chevron_right,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ],
           ),
         ),

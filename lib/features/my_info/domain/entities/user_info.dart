@@ -39,7 +39,8 @@ class UserInfo extends Equatable {
   final String category;
   final String nationality;
 
-  bool get isEmpty => props.every((element) => element == null || element == '');
+  bool get isEmpty =>
+      props.every((element) => element == null || element == '');
 
   UserInfo copyWith({
     String? fullName,
@@ -84,22 +85,22 @@ class UserInfo extends Equatable {
 
   @override
   List<Object?> get props => [
-        fullName,
-        fatherName,
-        motherName,
-        dob,
-        gender,
-        phone,
-        email,
-        address,
-        city,
-        state,
-        pinCode,
-        aadhaar,
-        pan,
-        schoolCollege,
-        qualification,
-        category,
-        nationality,
-      ];
+    fullName,
+    fatherName,
+    motherName,
+    dob,
+    gender,
+    phone,
+    email,
+    address,
+    city,
+    state,
+    pinCode,
+    aadhaar,
+    pan,
+    schoolCollege,
+    qualification,
+    category,
+    nationality,
+  ];
 }

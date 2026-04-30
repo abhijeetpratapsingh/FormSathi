@@ -20,3 +20,11 @@
 
 # macOS
 .DS_Store
+
+# Logs/env/temp
+*.log
+.env
+.env.*
+*.tmp
+*.swp
+Thumbs.db

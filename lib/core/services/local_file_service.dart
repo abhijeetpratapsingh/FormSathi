@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:image/image.dart' as img;
 import 'package:path/path.dart' as p;
 
 import '../enums/processed_file_type.dart';
@@ -15,7 +16,10 @@ class LocalFileService {
     required String sourcePath,
     required String fileName,
   }) async {
-    return _copyFile(sourcePath, p.join(_directoriesService.documentsDirectory.path, fileName));
+    return _copyFile(
+      sourcePath,
+      p.join(_directoriesService.documentsDirectory.path, fileName),
+    );
   }
 
   Future<String> saveProcessedCopy({
@@ -53,10 +57,35 @@ class LocalFileService {
     }
   }
 
+  Future<bool> tryDeleteFile(String path) async {
+    try {
+      await deleteFile(path);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<int> fileSize(String path) async {
     final file = File(path);
     if (!await file.exists()) return 0;
     return file.length();
+  }
+
+  Future<FileMetadata> metadata(String path) async {
+    final file = File(path);
+    if (!await file.exists()) {
+      throw AppException('Selected file is no longer available.');
+    }
+    final bytes = await file.readAsBytes();
+    final decoded = img.decodeImage(bytes);
+    return FileMetadata(
+      fileSizeBytes: bytes.length,
+      width: decoded?.width,
+      height: decoded?.height,
+      mimeType: _mimeType(path),
+      originalFileName: p.basename(path),
+    );
   }
 
   Future<String> _copyFile(String sourcePath, String destinationPath) async {
@@ -68,4 +97,30 @@ class LocalFileService {
     await source.copy(destination.path);
     return destination.path;
   }
+}
+
+class FileMetadata {
+  const FileMetadata({
+    required this.fileSizeBytes,
+    required this.originalFileName,
+    required this.mimeType,
+    this.width,
+    this.height,
+  });
+
+  final int fileSizeBytes;
+  final String originalFileName;
+  final String mimeType;
+  final int? width;
+  final int? height;
+}
+
+String _mimeType(String path) {
+  final extension = p.extension(path).toLowerCase();
+  return switch (extension) {
+    '.jpg' || '.jpeg' => 'image/jpeg',
+    '.png' => 'image/png',
+    '.pdf' => 'application/pdf',
+    _ => 'application/octet-stream',
+  };
 }

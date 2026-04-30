@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
@@ -6,23 +9,23 @@ import 'package:permission_handler/permission_handler.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/constants/app_strings.dart';
+import '../../../../core/enums/document_type.dart';
+import '../../../../core/services/local_file_service.dart';
 import '../../../../core/widgets/section_card.dart';
-import '../../../../core/enums/document_category.dart';
 import '../../domain/entities/saved_document.dart';
 import '../cubit/documents_cubit.dart';
 import '../cubit/documents_state.dart';
 import '../widgets/document_card.dart';
 import '../widgets/document_category_filter_bar.dart';
 import '../widgets/document_empty_state.dart';
-import '../widgets/document_metadata_sheet.dart';
+import '../widgets/document_metadata_review_sheet.dart';
+import '../widgets/document_source_picker_sheet.dart';
+import '../widgets/document_type_picker_sheet.dart';
 import '../widgets/document_view_mode_toggle.dart';
 import 'document_preview_page.dart';
 
 class DocumentsPage extends StatefulWidget {
-  const DocumentsPage({
-    required this.cubit,
-    super.key,
-  });
+  const DocumentsPage({required this.cubit, super.key});
 
   final DocumentsCubit cubit;
 
@@ -50,7 +53,9 @@ class _DocumentsPageState extends State<DocumentsPage> {
         listener: (context, state) {
           final messenger = ScaffoldMessenger.of(context);
           if (state.feedbackMessage != null) {
-            messenger.showSnackBar(SnackBar(content: Text(state.feedbackMessage!)));
+            messenger.showSnackBar(
+              SnackBar(content: Text(state.feedbackMessage!)),
+            );
             context.read<DocumentsCubit>().clearFeedback();
           } else if (state.errorMessage != null) {
             messenger.showSnackBar(
@@ -77,7 +82,9 @@ class _DocumentsPageState extends State<DocumentsPage> {
               ],
             ),
             floatingActionButton: FloatingActionButton.extended(
-              onPressed: state.isProcessing ? null : () => _showAddSheet(context, cubit),
+              onPressed: state.isProcessing
+                  ? null
+                  : () => _showAddSheet(context, cubit),
               icon: const Icon(Icons.add_rounded),
               label: const Text('Add'),
             ),
@@ -94,7 +101,8 @@ class _DocumentsPageState extends State<DocumentsPage> {
                         children: [
                           Text(
                             'My Documents',
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(
                                   fontWeight: FontWeight.w800,
                                   color: Colors.white,
                                 ),
@@ -102,7 +110,8 @@ class _DocumentsPageState extends State<DocumentsPage> {
                           const SizedBox(height: 6),
                           Text(
                             AppStrings.documentsEmpty,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
                                   color: Colors.white.withValues(alpha: 0.9),
                                 ),
                           ),
@@ -130,17 +139,17 @@ class _DocumentsPageState extends State<DocumentsPage> {
                     ),
                     const SizedBox(height: AppSizes.md),
                     DocumentCategoryFilterBar(
-                      selectedCategory: state.selectedCategory,
-                      onSelected: cubit.setCategoryFilter,
+                      selectedType: state.selectedTypeFilter,
+                      onSelected: cubit.setTypeFilter,
                     ),
                     const SizedBox(height: AppSizes.md),
-                    if (state.isLoading) const LinearProgressIndicator(minHeight: 2),
+                    if (state.isLoading)
+                      const LinearProgressIndicator(minHeight: 2),
                     if (state.isLoading) const SizedBox(height: AppSizes.md),
-                    if (state.isProcessing) const LinearProgressIndicator(minHeight: 2),
+                    if (state.isProcessing)
+                      const LinearProgressIndicator(minHeight: 2),
                     if (state.isProcessing) const SizedBox(height: AppSizes.md),
-                    Expanded(
-                      child: _buildContent(context, state, cubit),
-                    ),
+                    Expanded(child: _buildContent(context, state, cubit)),
                   ],
                 ),
               ),
@@ -151,14 +160,19 @@ class _DocumentsPageState extends State<DocumentsPage> {
     );
   }
 
-  Widget _buildContent(BuildContext context, DocumentsState state, DocumentsCubit cubit) {
+  Widget _buildContent(
+    BuildContext context,
+    DocumentsState state,
+    DocumentsCubit cubit,
+  ) {
     final documents = state.filteredDocuments;
     if (state.isLoading && state.documents.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
     if (documents.isEmpty) {
       return DocumentEmptyState(
-        searching: state.searchQuery.isNotEmpty || state.selectedCategory != null,
+        searching:
+            state.searchQuery.isNotEmpty || state.selectedTypeFilter != null,
       );
     }
 
@@ -166,7 +180,8 @@ class _DocumentsPageState extends State<DocumentsPage> {
       return ListView.separated(
         physics: const BouncingScrollPhysics(),
         itemCount: documents.length,
-        separatorBuilder: (context, index) => const SizedBox(height: AppSizes.md),
+        separatorBuilder: (context, index) =>
+            const SizedBox(height: AppSizes.md),
         itemBuilder: (context, index) {
           final document = documents[index];
           return DocumentCard(
@@ -202,71 +217,87 @@ class _DocumentsPageState extends State<DocumentsPage> {
   }
 
   Future<void> _showAddSheet(BuildContext context, DocumentsCubit cubit) async {
-    final source = await showModalBottomSheet<ImageSource>(
+    final type = await showModalBottomSheet<DocumentType>(
       context: context,
       showDragHandle: true,
-      builder: (context) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(AppSizes.md),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.photo_camera_rounded),
-                  title: const Text('Camera'),
-                  onTap: () => Navigator.of(context).pop(ImageSource.camera),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.photo_library_rounded),
-                  title: const Text('Gallery'),
-                  onTap: () => Navigator.of(context).pop(ImageSource.gallery),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+      builder: (context) => const DocumentTypePickerSheet(),
     );
-
-    if (source == null) return;
-    if (source == ImageSource.camera) {
-      final status = await Permission.camera.request();
-      if (!status.isGranted) {
-        if (!context.mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Camera permission is required to capture images.')),
-        );
-        return;
-      }
-    }
-
-    final picked = await _imagePicker.pickImage(
-      source: source,
-      imageQuality: 100,
-    );
-    if (picked == null) return;
+    if (type == null) return;
+    cubit.selectDocumentType(type);
 
     if (!context.mounted) return;
-    final metadata = await showModalBottomSheet<DocumentMetadataResult>(
+    final messenger = ScaffoldMessenger.of(context);
+    final source = await showModalBottomSheet<DocumentSourceChoice>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => DocumentSourcePickerSheet(documentType: type),
+    );
+    if (source == null) return;
+
+    final sourcePath = await _pickSourcePath(messenger, type, source);
+    if (sourcePath == null) return;
+    cubit.selectSourcePath(sourcePath);
+
+    final fileMetadata = await LocalFileServiceMetadataReader.read(sourcePath);
+    if (!context.mounted) return;
+    final metadata = await showModalBottomSheet<DocumentMetadataReviewResult>(
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
       builder: (context) {
-        final initialTitle = _fallbackTitleFromPath(picked.path);
-        return DocumentMetadataSheet(
-          initialTitle: initialTitle,
-          initialCategory: DocumentCategory.other,
+        return DocumentMetadataReviewSheet(
+          documentType: type,
+          sourcePath: sourcePath,
+          metadata: fileMetadata,
+          initialTitle: type.defaultTitle,
         );
       },
     );
 
     if (metadata == null) return;
-    await cubit.addDocument(
-      sourcePath: picked.path,
+    cubit.updateDraftMetadata(side: metadata.side, notes: metadata.notes);
+    await cubit.addTypedDocument(
+      sourcePath: sourcePath,
       title: metadata.title,
-      category: metadata.category,
+      documentType: type,
+      side: metadata.side,
+      notes: metadata.notes,
     );
+  }
+
+  Future<String?> _pickSourcePath(
+    ScaffoldMessengerState messenger,
+    DocumentType type,
+    DocumentSourceChoice source,
+  ) async {
+    if (source == DocumentSourceChoice.file) {
+      final result = await FilePicker.pickFiles(
+        type: type == DocumentType.resume ? FileType.custom : FileType.any,
+        allowedExtensions: type == DocumentType.resume ? const ['pdf'] : null,
+      );
+      return result?.files.single.path;
+    }
+
+    final imageSource = source == DocumentSourceChoice.camera
+        ? ImageSource.camera
+        : ImageSource.gallery;
+    if (imageSource == ImageSource.camera) {
+      final status = await Permission.camera.request();
+      if (!status.isGranted) {
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text('Camera permission is required to capture images.'),
+          ),
+        );
+        return null;
+      }
+    }
+
+    final picked = await _imagePicker.pickImage(
+      source: imageSource,
+      imageQuality: 100,
+    );
+    return picked?.path;
   }
 
   Future<void> _renameDocument(
@@ -295,7 +326,9 @@ class _DocumentsPageState extends State<DocumentsPage> {
       builder: (context) {
         return AlertDialog(
           title: const Text('Delete document?'),
-          content: Text('This will remove "${document.title}" from local storage.'),
+          content: Text(
+            'This will remove "${document.title}" from local storage.',
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
@@ -313,23 +346,41 @@ class _DocumentsPageState extends State<DocumentsPage> {
     await cubit.deleteDocument(document);
   }
 
-  void _openPreview(BuildContext context, SavedDocument document, DocumentsCubit cubit) {
+  void _openPreview(
+    BuildContext context,
+    SavedDocument document,
+    DocumentsCubit cubit,
+  ) {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => BlocProvider.value(
           value: cubit,
-          child: DocumentPreviewPage(
-            documentId: document.id,
-          ),
+          child: DocumentPreviewPage(documentId: document.id),
         ),
       ),
     );
   }
+}
 
-  String _fallbackTitleFromPath(String path) {
-    final fileName = path.split('/').last;
-    final index = fileName.lastIndexOf('.');
-    return index == -1 ? fileName : fileName.substring(0, index);
+class LocalFileServiceMetadataReader {
+  const LocalFileServiceMetadataReader._();
+
+  static Future<FileMetadata> read(String path) async {
+    final file = File(path);
+    final bytes = await file.readAsBytes();
+    return FileMetadata(
+      fileSizeBytes: bytes.length,
+      originalFileName: file.uri.pathSegments.last,
+      mimeType: _mimeType(path),
+    );
+  }
+
+  static String _mimeType(String path) {
+    final lower = path.toLowerCase();
+    if (lower.endsWith('.pdf')) return 'application/pdf';
+    if (lower.endsWith('.png')) return 'image/png';
+    if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
+    return 'application/octet-stream';
   }
 }
 

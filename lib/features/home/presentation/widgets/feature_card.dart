@@ -49,7 +49,9 @@ class FeatureCard extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                     const SizedBox(height: AppSizes.xs),
                     Text(
@@ -61,7 +63,10 @@ class FeatureCard extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right_rounded, color: theme.colorScheme.onSurfaceVariant),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ],
           ),
         ),

@@ -5,8 +5,8 @@ class DeleteProcessedFileUseCase {
   const DeleteProcessedFileUseCase({
     required ToolsRepository repository,
     required LocalFileService localFileService,
-  })  : _repository = repository,
-        _localFileService = localFileService;
+  }) : _repository = repository,
+       _localFileService = localFileService;
 
   final ToolsRepository _repository;
   final LocalFileService _localFileService;

@@ -14,7 +14,9 @@ import '../cubit/resize_image_cubit.dart';
 import '../cubit/resize_image_state.dart';
 import '../cubit/tools_cubit.dart';
 import '../widgets/image_picker_bottom_sheet.dart';
+import '../widgets/custom_dimensions_fields.dart';
 import '../widgets/preset_chip.dart';
+import '../widgets/target_size_selector.dart';
 import '../widgets/tool_section_header.dart';
 
 class ResizeImagePage extends StatelessWidget {
@@ -26,10 +28,13 @@ class ResizeImagePage extends StatelessWidget {
       title: 'Resize Image',
       body: BlocConsumer<ResizeImageCubit, ResizeImageState>(
         listenWhen: (previous, current) =>
-            previous.errorMessage != current.errorMessage || previous.outputPath != current.outputPath,
+            previous.errorMessage != current.errorMessage ||
+            previous.outputPath != current.outputPath,
         listener: (context, state) {
           if (state.errorMessage != null) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.errorMessage!)));
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.errorMessage!)));
             context.read<ResizeImageCubit>().clearError();
           }
           if (state.hasResult) {
@@ -41,14 +46,17 @@ class ResizeImagePage extends StatelessWidget {
             children: [
               const ToolSectionHeader(
                 title: 'Select an image',
-                subtitle: 'Choose from camera or gallery, then apply a resize preset.',
+                subtitle:
+                    'Choose from camera or gallery, then apply a resize preset.',
               ),
               const SizedBox(height: AppSizes.sm),
               Row(
                 children: [
                   Expanded(
                     child: OutlinedButton.icon(
-                      onPressed: state.isPicking ? null : () => _selectImage(context),
+                      onPressed: state.isPicking
+                          ? null
+                          : () => _selectImage(context),
                       icon: const Icon(Icons.add_a_photo_outlined),
                       label: const Text('Camera / Gallery'),
                     ),
@@ -73,10 +81,13 @@ class ResizeImagePage extends StatelessWidget {
                       const SizedBox(height: AppSizes.md),
                       Text(
                         state.sourcePath!.split('/').last,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w700),
                       ),
                       const SizedBox(height: 4),
-                      Text('Original size: ${FileSizeFormatter.format(state.originalBytes ?? 0)}'),
+                      Text(
+                        'Original size: ${FileSizeFormatter.format(state.originalBytes ?? 0)}',
+                      ),
                     ],
                   ),
                 )
@@ -99,19 +110,45 @@ class ResizeImagePage extends StatelessWidget {
                       (preset) => PresetChip(
                         label: preset.label,
                         selected: state.preset == preset,
-                        onTap: () => context.read<ResizeImageCubit>().setPreset(preset),
+                        onTap: () =>
+                            context.read<ResizeImageCubit>().setPreset(preset),
                       ),
                     )
                     .toList(growable: false),
               ),
+              if (state.preset == ResizePreset.custom) ...[
+                const SizedBox(height: AppSizes.sm),
+                CustomDimensionsFields(
+                  width: state.customWidth,
+                  height: state.customHeight,
+                  onChanged: (width, height) => context
+                      .read<ResizeImageCubit>()
+                      .setCustomDimensions(width: width, height: height),
+                ),
+              ],
+              const SizedBox(height: AppSizes.sm),
+              TargetSizeSelector(
+                selectedKb: state.customTargetBytes == null
+                    ? state.preset.targetBytes == null
+                          ? null
+                          : state.preset.targetBytes! ~/ 1024
+                    : state.customTargetBytes! ~/ 1024,
+                onSelected: (kb) =>
+                    context.read<ResizeImageCubit>().setCustomTargetKb(kb),
+              ),
               const SizedBox(height: AppSizes.md),
               FilledButton.icon(
-                onPressed: state.isProcessing || !state.hasSource ? null : () => context.read<ResizeImageCubit>().processImage(),
+                onPressed: state.isProcessing || !state.hasSource
+                    ? null
+                    : () => context.read<ResizeImageCubit>().processImage(),
                 icon: state.isProcessing
                     ? const SizedBox(
                         width: 16,
                         height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
                       )
                     : const Icon(Icons.save_outlined),
                 label: const Text('Save copy'),
@@ -122,9 +159,15 @@ class ResizeImagePage extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Saved to device storage', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                      Text(
+                        'Saved to device storage',
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w700),
+                      ),
                       const SizedBox(height: 8),
-                      Text('Final size: ${FileSizeFormatter.format(state.outputBytes ?? 0)}'),
+                      Text(
+                        'Final size: ${FileSizeFormatter.format(state.outputBytes ?? 0)}',
+                      ),
                       const SizedBox(height: 4),
                       Text(state.outputPath ?? ''),
                       const SizedBox(height: AppSizes.md),

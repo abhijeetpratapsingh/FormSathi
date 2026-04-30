@@ -8,7 +8,14 @@ class AppSizes {
   static const double md = 16;
   static const double lg = 24;
   static const double xl = 32;
+  static const double bottomNavHeight = 72;
+  static const double minTouchTarget = 48;
+  static const double exportActionIcon = 28;
+  static const double privacyIcon = 32;
 
   static const BorderRadius cardRadius = BorderRadius.all(Radius.circular(12));
   static const BorderRadius fieldRadius = BorderRadius.all(Radius.circular(12));
+  static const BorderRadius sheetRadius = BorderRadius.vertical(
+    top: Radius.circular(20),
+  );
 }

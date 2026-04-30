@@ -20,10 +20,18 @@ class AppDirectoriesService {
   Future<void> init() async {
     final baseDir = await getApplicationDocumentsDirectory();
     rootDirectory = await _ensureDirectory('${baseDir.path}/$_root');
-    documentsDirectory = await _ensureDirectory('${rootDirectory.path}/$_documents');
-    processedDirectory = await _ensureDirectory('${rootDirectory.path}/$_processed');
-    resizedDirectory = await _ensureDirectory('${processedDirectory.path}/$_resized');
-    compressedDirectory = await _ensureDirectory('${processedDirectory.path}/$_compressed');
+    documentsDirectory = await _ensureDirectory(
+      '${rootDirectory.path}/$_documents',
+    );
+    processedDirectory = await _ensureDirectory(
+      '${rootDirectory.path}/$_processed',
+    );
+    resizedDirectory = await _ensureDirectory(
+      '${processedDirectory.path}/$_resized',
+    );
+    compressedDirectory = await _ensureDirectory(
+      '${processedDirectory.path}/$_compressed',
+    );
     pdfDirectory = await _ensureDirectory('${processedDirectory.path}/$_pdfs');
   }
 

@@ -15,6 +15,7 @@ import '../cubit/compress_image_state.dart';
 import '../cubit/tools_cubit.dart';
 import '../widgets/image_picker_bottom_sheet.dart';
 import '../widgets/resize_quality_chip.dart';
+import '../widgets/target_size_selector.dart';
 import '../widgets/tool_section_header.dart';
 
 class CompressImagePage extends StatelessWidget {
@@ -26,10 +27,13 @@ class CompressImagePage extends StatelessWidget {
       title: 'Compress Image',
       body: BlocConsumer<CompressImageCubit, CompressImageState>(
         listenWhen: (previous, current) =>
-            previous.errorMessage != current.errorMessage || previous.outputPath != current.outputPath,
+            previous.errorMessage != current.errorMessage ||
+            previous.outputPath != current.outputPath,
         listener: (context, state) {
           if (state.errorMessage != null) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.errorMessage!)));
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.errorMessage!)));
             context.read<CompressImageCubit>().clearError();
           }
           if (state.hasResult) {
@@ -65,9 +69,15 @@ class CompressImagePage extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: AppSizes.md),
-                      Text(state.sourcePath!.split('/').last, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                      Text(
+                        state.sourcePath!.split('/').last,
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w700),
+                      ),
                       const SizedBox(height: 4),
-                      Text('Original size: ${FileSizeFormatter.format(state.originalBytes ?? 0)}'),
+                      Text(
+                        'Original size: ${FileSizeFormatter.format(state.originalBytes ?? 0)}',
+                      ),
                     ],
                   ),
                 )
@@ -90,19 +100,36 @@ class CompressImagePage extends StatelessWidget {
                       (quality) => ResizeQualityChip(
                         label: quality.label,
                         selected: state.quality == quality,
-                        onTap: () => context.read<CompressImageCubit>().setQuality(quality),
+                        onTap: () => context
+                            .read<CompressImageCubit>()
+                            .setQuality(quality),
                       ),
                     )
                     .toList(growable: false),
               ),
+              const SizedBox(height: AppSizes.sm),
+              TargetSizeSelector(
+                selectedKb: state.customTargetBytes == null
+                    ? state.quality.targetBytes == null
+                          ? null
+                          : state.quality.targetBytes! ~/ 1024
+                    : state.customTargetBytes! ~/ 1024,
+                onSelected: (kb) =>
+                    context.read<CompressImageCubit>().setCustomTargetKb(kb),
+              ),
               const SizedBox(height: AppSizes.md),
               FilledButton.icon(
-                onPressed: state.isCompressing || !state.hasSource ? null : () => context.read<CompressImageCubit>().compressImage(),
+                onPressed: state.isCompressing || !state.hasSource
+                    ? null
+                    : () => context.read<CompressImageCubit>().compressImage(),
                 icon: state.isCompressing
                     ? const SizedBox(
                         width: 16,
                         height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
                       )
                     : const Icon(Icons.save_outlined),
                 label: const Text('Save compressed copy'),
@@ -113,9 +140,15 @@ class CompressImagePage extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Saved to device storage', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                      Text(
+                        'Saved to device storage',
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w700),
+                      ),
                       const SizedBox(height: 8),
-                      Text('Final size: ${FileSizeFormatter.format(state.outputBytes ?? 0)}'),
+                      Text(
+                        'Final size: ${FileSizeFormatter.format(state.outputBytes ?? 0)}',
+                      ),
                       const SizedBox(height: 4),
                       Text(state.outputPath ?? ''),
                       const SizedBox(height: AppSizes.md),

@@ -14,11 +14,11 @@ class CompressImageCubit extends Cubit<CompressImageState> {
     required LocalFileService localFileService,
     required PermissionService permissionService,
     ImagePicker? imagePicker,
-  })  : _compressImageUseCase = compressImageUseCase,
-        _localFileService = localFileService,
-        _permissionService = permissionService,
-        _imagePicker = imagePicker ?? ImagePicker(),
-        super(const CompressImageState());
+  }) : _compressImageUseCase = compressImageUseCase,
+       _localFileService = localFileService,
+       _permissionService = permissionService,
+       _imagePicker = imagePicker ?? ImagePicker(),
+       super(const CompressImageState());
 
   final CompressImageUseCase _compressImageUseCase;
   final LocalFileService _localFileService;
@@ -26,7 +26,23 @@ class CompressImageCubit extends Cubit<CompressImageState> {
   final ImagePicker _imagePicker;
 
   void setQuality(ImageQualityOption quality) {
-    emit(state.copyWith(quality: quality, errorMessage: null));
+    emit(
+      state.copyWith(
+        quality: quality,
+        clearCustomTargetBytes: quality.targetBytes != null,
+        errorMessage: null,
+      ),
+    );
+  }
+
+  void setCustomTargetKb(int? kb) {
+    emit(
+      state.copyWith(
+        customTargetBytes: kb == null ? null : kb * 1024,
+        clearCustomTargetBytes: kb == null,
+        errorMessage: null,
+      ),
+    );
   }
 
   Future<void> pickFromGallery() => _pickImage(ImageSource.gallery);
@@ -39,20 +55,25 @@ class CompressImageCubit extends Cubit<CompressImageState> {
       if (source == ImageSource.camera) {
         await _permissionService.ensureCameraPermission();
       }
-      final picked = await _imagePicker.pickImage(source: source, imageQuality: 100);
+      final picked = await _imagePicker.pickImage(
+        source: source,
+        imageQuality: 100,
+      );
       if (picked == null) {
         emit(state.copyWith(isPicking: false));
         return;
       }
       final sourcePath = picked.path;
       final originalBytes = await _localFileService.fileSize(sourcePath);
-      emit(state.copyWith(
-        isPicking: false,
-        sourcePath: sourcePath,
-        originalBytes: originalBytes,
-        clearResult: true,
-        errorMessage: null,
-      ));
+      emit(
+        state.copyWith(
+          isPicking: false,
+          sourcePath: sourcePath,
+          originalBytes: originalBytes,
+          clearResult: true,
+          errorMessage: null,
+        ),
+      );
     } catch (error) {
       emit(state.copyWith(isPicking: false, errorMessage: error.toString()));
     }
@@ -69,15 +90,18 @@ class CompressImageCubit extends Cubit<CompressImageState> {
       final processed = await _compressImageUseCase(
         sourcePath: sourcePath,
         quality: state.quality,
+        targetBytes: state.customTargetBytes,
       );
       final outputBytes = await _localFileService.fileSize(processed.localPath);
-      emit(state.copyWith(
-        isCompressing: false,
-        outputPath: processed.localPath,
-        outputBytes: outputBytes,
-        processedFile: processed,
-        errorMessage: null,
-      ));
+      emit(
+        state.copyWith(
+          isCompressing: false,
+          outputPath: processed.localPath,
+          outputBytes: outputBytes,
+          processedFile: processed,
+          errorMessage: null,
+        ),
+      );
     } catch (error) {
       emit(state.copyWith(isCompressing: false, errorMessage: _message(error)));
     }

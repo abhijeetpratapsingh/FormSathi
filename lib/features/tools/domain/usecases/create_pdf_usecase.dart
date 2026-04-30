@@ -13,10 +13,10 @@ class CreatePdfUseCase {
     required LocalFileService localFileService,
     required ToolsRepository repository,
     Uuid? uuid,
-  })  : _pdfService = pdfService,
-        _localFileService = localFileService,
-        _repository = repository,
-        _uuid = uuid ?? const Uuid();
+  }) : _pdfService = pdfService,
+       _localFileService = localFileService,
+       _repository = repository,
+       _uuid = uuid ?? const Uuid();
 
   final PdfService _pdfService;
   final LocalFileService _localFileService;
@@ -26,12 +26,16 @@ class CreatePdfUseCase {
   Future<ProcessedFile> call({
     required List<String> imagePaths,
     required String title,
+    int? targetBytes,
   }) async {
     final result = await _pdfService.createPdf(
       imagePaths: imagePaths,
       title: title,
+      targetBytes: targetBytes,
     );
-    final baseName = _sanitizeFileName(title.isEmpty ? _pdfService.suggestedPdfName(imagePaths) : title);
+    final baseName = _sanitizeFileName(
+      title.isEmpty ? _pdfService.suggestedPdfName(imagePaths) : title,
+    );
     final fileName = '${baseName}_${DateTime.now().millisecondsSinceEpoch}.pdf';
     final path = await _localFileService.writeBytes(
       bytes: result,
@@ -47,14 +51,20 @@ class CreatePdfUseCase {
         'title': title,
         'pages': imagePaths.length.toString(),
         'sourceImages': imagePaths.map(p.basename).join(', '),
+        if (targetBytes != null) 'targetBytes': '$targetBytes',
       },
+      fileSizeBytes: result.length,
+      pageCount: imagePaths.length,
     );
     await _repository.saveProcessedFile(processed);
     return processed;
   }
 
   String _sanitizeFileName(String input) {
-    final sanitized = input.trim().replaceAll(RegExp(r'[^a-zA-Z0-9_\- ]'), '').replaceAll(' ', '_');
+    final sanitized = input
+        .trim()
+        .replaceAll(RegExp(r'[^a-zA-Z0-9_\- ]'), '')
+        .replaceAll(' ', '_');
     return sanitized.isEmpty ? 'form_sathi_document' : sanitized;
   }
 }

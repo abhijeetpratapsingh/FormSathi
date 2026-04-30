@@ -40,18 +40,20 @@ class MyInfoState extends Equatable {
       userInfo: userInfo ?? this.userInfo,
       isAadhaarObscured: isAadhaarObscured ?? this.isAadhaarObscured,
       isPanObscured: isPanObscured ?? this.isPanObscured,
-      feedbackMessage: clearFeedback ? null : (feedbackMessage ?? this.feedbackMessage),
+      feedbackMessage: clearFeedback
+          ? null
+          : (feedbackMessage ?? this.feedbackMessage),
       feedbackVersion: feedbackVersion ?? this.feedbackVersion,
     );
   }
 
   @override
   List<Object?> get props => [
-        status,
-        userInfo,
-        isAadhaarObscured,
-        isPanObscured,
-        feedbackMessage,
-        feedbackVersion,
-      ];
+    status,
+    userInfo,
+    isAadhaarObscured,
+    isPanObscured,
+    feedbackMessage,
+    feedbackVersion,
+  ];
 }

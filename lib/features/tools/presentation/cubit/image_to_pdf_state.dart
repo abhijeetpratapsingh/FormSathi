@@ -6,8 +6,10 @@ class ImageToPdfState extends Equatable {
   const ImageToPdfState({
     this.imagePaths = const <String>[],
     this.pdfTitle = 'form_sathi_document',
+    this.targetBytes,
     this.outputPath,
     this.outputBytes,
+    this.outputWarning,
     this.processedFile,
     this.isPicking = false,
     this.isGenerating = false,
@@ -16,8 +18,10 @@ class ImageToPdfState extends Equatable {
 
   final List<String> imagePaths;
   final String pdfTitle;
+  final int? targetBytes;
   final String? outputPath;
   final int? outputBytes;
+  final String? outputWarning;
   final ProcessedFile? processedFile;
   final bool isPicking;
   final bool isGenerating;
@@ -29,8 +33,12 @@ class ImageToPdfState extends Equatable {
   ImageToPdfState copyWith({
     List<String>? imagePaths,
     String? pdfTitle,
+    int? targetBytes,
+    bool clearTargetBytes = false,
     String? outputPath,
     int? outputBytes,
+    String? outputWarning,
+    bool clearOutputWarning = false,
     ProcessedFile? processedFile,
     bool? isPicking,
     bool? isGenerating,
@@ -40,8 +48,12 @@ class ImageToPdfState extends Equatable {
     return ImageToPdfState(
       imagePaths: imagePaths ?? this.imagePaths,
       pdfTitle: pdfTitle ?? this.pdfTitle,
+      targetBytes: clearTargetBytes ? null : (targetBytes ?? this.targetBytes),
       outputPath: clearResult ? null : (outputPath ?? this.outputPath),
       outputBytes: clearResult ? null : (outputBytes ?? this.outputBytes),
+      outputWarning: clearResult || clearOutputWarning
+          ? null
+          : (outputWarning ?? this.outputWarning),
       processedFile: clearResult ? null : (processedFile ?? this.processedFile),
       isPicking: isPicking ?? this.isPicking,
       isGenerating: isGenerating ?? this.isGenerating,
@@ -51,13 +63,15 @@ class ImageToPdfState extends Equatable {
 
   @override
   List<Object?> get props => [
-        imagePaths,
-        pdfTitle,
-        outputPath,
-        outputBytes,
-        processedFile,
-        isPicking,
-        isGenerating,
-        errorMessage,
-      ];
+    imagePaths,
+    pdfTitle,
+    targetBytes,
+    outputPath,
+    outputBytes,
+    outputWarning,
+    processedFile,
+    isPicking,
+    isGenerating,
+    errorMessage,
+  ];
 }

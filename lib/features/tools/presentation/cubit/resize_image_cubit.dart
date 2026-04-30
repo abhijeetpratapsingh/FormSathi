@@ -14,11 +14,11 @@ class ResizeImageCubit extends Cubit<ResizeImageState> {
     required LocalFileService localFileService,
     required PermissionService permissionService,
     ImagePicker? imagePicker,
-  })  : _resizeImageUseCase = resizeImageUseCase,
-        _localFileService = localFileService,
-        _permissionService = permissionService,
-        _imagePicker = imagePicker ?? ImagePicker(),
-        super(const ResizeImageState());
+  }) : _resizeImageUseCase = resizeImageUseCase,
+       _localFileService = localFileService,
+       _permissionService = permissionService,
+       _imagePicker = imagePicker ?? ImagePicker(),
+       super(const ResizeImageState());
 
   final ResizeImageUseCase _resizeImageUseCase;
   final LocalFileService _localFileService;
@@ -27,6 +27,29 @@ class ResizeImageCubit extends Cubit<ResizeImageState> {
 
   void setPreset(ResizePreset preset) {
     emit(state.copyWith(preset: preset, errorMessage: null));
+  }
+
+  void setCustomDimensions({int? width, int? height}) {
+    emit(
+      state.copyWith(
+        customWidth: width,
+        clearCustomWidth: width == null,
+        customHeight: height,
+        clearCustomHeight: height == null,
+        preset: ResizePreset.custom,
+        errorMessage: null,
+      ),
+    );
+  }
+
+  void setCustomTargetKb(int? kb) {
+    emit(
+      state.copyWith(
+        customTargetBytes: kb == null ? null : kb * 1024,
+        clearCustomTargetBytes: kb == null,
+        errorMessage: null,
+      ),
+    );
   }
 
   Future<void> pickFromGallery() => _pickImage(ImageSource.gallery);
@@ -39,20 +62,25 @@ class ResizeImageCubit extends Cubit<ResizeImageState> {
       if (source == ImageSource.camera) {
         await _permissionService.ensureCameraPermission();
       }
-      final picked = await _imagePicker.pickImage(source: source, imageQuality: 100);
+      final picked = await _imagePicker.pickImage(
+        source: source,
+        imageQuality: 100,
+      );
       if (picked == null) {
         emit(state.copyWith(isPicking: false));
         return;
       }
       final sourcePath = picked.path;
       final originalBytes = await _localFileService.fileSize(sourcePath);
-      emit(state.copyWith(
-        isPicking: false,
-        sourcePath: sourcePath,
-        originalBytes: originalBytes,
-        clearResult: true,
-        errorMessage: null,
-      ));
+      emit(
+        state.copyWith(
+          isPicking: false,
+          sourcePath: sourcePath,
+          originalBytes: originalBytes,
+          clearResult: true,
+          errorMessage: null,
+        ),
+      );
     } catch (error) {
       emit(state.copyWith(isPicking: false, errorMessage: error.toString()));
     }
@@ -64,20 +92,30 @@ class ResizeImageCubit extends Cubit<ResizeImageState> {
       emit(state.copyWith(errorMessage: 'Select an image first.'));
       return;
     }
+    if (state.preset == ResizePreset.custom &&
+        (state.customWidth == null || state.customHeight == null)) {
+      emit(state.copyWith(errorMessage: 'Enter width and height.'));
+      return;
+    }
     emit(state.copyWith(isProcessing: true, errorMessage: null));
     try {
       final processed = await _resizeImageUseCase(
         sourcePath: sourcePath,
         preset: state.preset,
+        customWidth: state.customWidth,
+        customHeight: state.customHeight,
+        targetBytes: state.customTargetBytes,
       );
       final outputBytes = await _localFileService.fileSize(processed.localPath);
-      emit(state.copyWith(
-        isProcessing: false,
-        outputPath: processed.localPath,
-        outputBytes: outputBytes,
-        processedFile: processed,
-        errorMessage: null,
-      ));
+      emit(
+        state.copyWith(
+          isProcessing: false,
+          outputPath: processed.localPath,
+          outputBytes: outputBytes,
+          processedFile: processed,
+          errorMessage: null,
+        ),
+      );
     } catch (error) {
       emit(state.copyWith(isProcessing: false, errorMessage: _message(error)));
     }

@@ -15,12 +15,12 @@ class ImageToPdfCubit extends Cubit<ImageToPdfState> {
     required PermissionService permissionService,
     required PdfService pdfService,
     ImagePicker? imagePicker,
-  })  : _createPdfUseCase = createPdfUseCase,
-        _localFileService = localFileService,
-        _permissionService = permissionService,
-        _pdfService = pdfService,
-        _imagePicker = imagePicker ?? ImagePicker(),
-        super(const ImageToPdfState());
+  }) : _createPdfUseCase = createPdfUseCase,
+       _localFileService = localFileService,
+       _permissionService = permissionService,
+       _pdfService = pdfService,
+       _imagePicker = imagePicker ?? ImagePicker(),
+       super(const ImageToPdfState());
 
   final CreatePdfUseCase _createPdfUseCase;
   final LocalFileService _localFileService;
@@ -30,6 +30,17 @@ class ImageToPdfCubit extends Cubit<ImageToPdfState> {
 
   void setTitle(String title) {
     emit(state.copyWith(pdfTitle: title, errorMessage: null));
+  }
+
+  void setTargetKb(int? kb) {
+    emit(
+      state.copyWith(
+        targetBytes: kb == null ? null : kb * 1024,
+        clearTargetBytes: kb == null,
+        clearOutputWarning: true,
+        errorMessage: null,
+      ),
+    );
   }
 
   Future<void> addImagesFromGallery() async {
@@ -47,7 +58,10 @@ class ImageToPdfCubit extends Cubit<ImageToPdfState> {
     emit(state.copyWith(isPicking: true, errorMessage: null));
     try {
       await _permissionService.ensureCameraPermission();
-      final picked = await _imagePicker.pickImage(source: ImageSource.camera, imageQuality: 100);
+      final picked = await _imagePicker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 100,
+      );
       if (picked != null) {
         _ingestPaths([picked.path]);
       }
@@ -59,11 +73,13 @@ class ImageToPdfCubit extends Cubit<ImageToPdfState> {
 
   void removeImageAt(int index) {
     final updated = state.imagePaths.toList()..removeAt(index);
-    emit(state.copyWith(
-      imagePaths: updated,
-      clearResult: true,
-      pdfTitle: updated.isEmpty ? 'form_sathi_document' : state.pdfTitle,
-    ));
+    emit(
+      state.copyWith(
+        imagePaths: updated,
+        clearResult: true,
+        pdfTitle: updated.isEmpty ? 'form_sathi_document' : state.pdfTitle,
+      ),
+    );
   }
 
   void reorderImages(int oldIndex, int newIndex) {
@@ -85,16 +101,26 @@ class ImageToPdfCubit extends Cubit<ImageToPdfState> {
     try {
       final processed = await _createPdfUseCase(
         imagePaths: state.imagePaths,
-        title: state.pdfTitle.isEmpty ? _pdfService.suggestedPdfName(state.imagePaths) : state.pdfTitle,
+        title: state.pdfTitle.isEmpty
+            ? _pdfService.suggestedPdfName(state.imagePaths)
+            : state.pdfTitle,
+        targetBytes: state.targetBytes,
       );
       final outputBytes = await _localFileService.fileSize(processed.localPath);
-      emit(state.copyWith(
-        isGenerating: false,
-        outputPath: processed.localPath,
-        outputBytes: outputBytes,
-        processedFile: processed,
-        errorMessage: null,
-      ));
+      final warning =
+          state.targetBytes != null && outputBytes > state.targetBytes!
+          ? 'Output is above the selected target.'
+          : null;
+      emit(
+        state.copyWith(
+          isGenerating: false,
+          outputPath: processed.localPath,
+          outputBytes: outputBytes,
+          outputWarning: warning,
+          processedFile: processed,
+          errorMessage: null,
+        ),
+      );
     } catch (error) {
       emit(state.copyWith(isGenerating: false, errorMessage: _message(error)));
     }
@@ -107,11 +133,17 @@ class ImageToPdfCubit extends Cubit<ImageToPdfState> {
   }
 
   void _ingestPaths(List<String> paths) {
-    final merged = <String>{...state.imagePaths, ...paths}.toList(growable: false);
-    final title = state.pdfTitle == 'form_sathi_document' || state.pdfTitle.isEmpty
+    final merged = <String>{
+      ...state.imagePaths,
+      ...paths,
+    }.toList(growable: false);
+    final title =
+        state.pdfTitle == 'form_sathi_document' || state.pdfTitle.isEmpty
         ? _pdfService.suggestedPdfName(merged)
         : state.pdfTitle;
-    emit(state.copyWith(imagePaths: merged, pdfTitle: title, clearResult: true));
+    emit(
+      state.copyWith(imagePaths: merged, pdfTitle: title, clearResult: true),
+    );
   }
 
   String _message(Object error) {

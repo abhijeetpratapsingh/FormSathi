@@ -30,12 +30,13 @@ class ToolsHomePage extends StatelessWidget {
     return AppScaffold(
       title: 'Tools',
       body: BlocConsumer<ToolsCubit, ToolsState>(
-        listenWhen: (previous, current) => previous.errorMessage != current.errorMessage,
+        listenWhen: (previous, current) =>
+            previous.errorMessage != current.errorMessage,
         listener: (context, state) {
           if (state.errorMessage != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.errorMessage!)),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.errorMessage!)));
             context.read<ToolsCubit>().clearError();
           }
         },
@@ -50,14 +51,15 @@ class ToolsHomePage extends StatelessWidget {
                     Text(
                       AppStrings.tagline,
                       style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                            color: Colors.white.withValues(alpha: 0.9),
-                            fontWeight: FontWeight.w700,
-                          ),
+                        color: Colors.white.withValues(alpha: 0.9),
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       AppStrings.homeSubtitle,
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(
                             fontWeight: FontWeight.w800,
                             color: Colors.white,
                           ),
@@ -66,8 +68,8 @@ class ToolsHomePage extends StatelessWidget {
                     Text(
                       'Resize, compress, and create PDFs without internet or signup.',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.white.withValues(alpha: 0.9),
-                          ),
+                        color: Colors.white.withValues(alpha: 0.9),
+                      ),
                     ),
                   ],
                 ),
@@ -75,14 +77,17 @@ class ToolsHomePage extends StatelessWidget {
               const SizedBox(height: AppSizes.md),
               ToolActionCard(
                 title: 'Resize Image',
-                subtitle: 'Passport size, signature size, and target file sizes',
+                subtitle:
+                    'Passport size, signature size, and target file sizes',
                 icon: Icons.photo_size_select_actual_outlined,
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (_) => MultiBlocProvider(
                       providers: [
                         BlocProvider.value(value: context.read<ToolsCubit>()),
-                        BlocProvider.value(value: context.read<ResizeImageCubit>()),
+                        BlocProvider.value(
+                          value: context.read<ResizeImageCubit>(),
+                        ),
                       ],
                       child: const ResizeImagePage(),
                     ),
@@ -98,7 +103,9 @@ class ToolsHomePage extends StatelessWidget {
                     builder: (_) => MultiBlocProvider(
                       providers: [
                         BlocProvider.value(value: context.read<ToolsCubit>()),
-                        BlocProvider.value(value: context.read<CompressImageCubit>()),
+                        BlocProvider.value(
+                          value: context.read<CompressImageCubit>(),
+                        ),
                       ],
                       child: const CompressImagePage(),
                     ),
@@ -107,14 +114,17 @@ class ToolsHomePage extends StatelessWidget {
               ),
               ToolActionCard(
                 title: 'Image to PDF',
-                subtitle: 'Select multiple images, reorder them, and create a PDF',
+                subtitle:
+                    'Select multiple images, reorder them, and create a PDF',
                 icon: Icons.picture_as_pdf_outlined,
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (_) => MultiBlocProvider(
                       providers: [
                         BlocProvider.value(value: context.read<ToolsCubit>()),
-                        BlocProvider.value(value: context.read<ImageToPdfCubit>()),
+                        BlocProvider.value(
+                          value: context.read<ImageToPdfCubit>(),
+                        ),
                       ],
                       child: const ImageToPdfPage(),
                     ),
@@ -126,13 +136,20 @@ class ToolsHomePage extends StatelessWidget {
                 title: 'Recent processed files',
                 subtitle: 'Your last saved outputs stay on this device.',
                 trailing: TextButton(
-                  onPressed: state.isLoading ? null : () => context.read<ToolsCubit>().refresh(),
+                  onPressed: state.isLoading
+                      ? null
+                      : () => context.read<ToolsCubit>().refresh(),
                   child: const Text('Refresh'),
                 ),
               ),
               const SizedBox(height: AppSizes.sm),
               if (state.isLoading)
-                const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()))
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(24),
+                    child: CircularProgressIndicator(),
+                  ),
+                )
               else if (state.recentFiles.isEmpty)
                 const EmptyStateCard(
                   icon: Icons.folder_open_outlined,
@@ -178,10 +195,18 @@ class ToolsHomePage extends StatelessWidget {
       builder: (context) {
         return AlertDialog(
           title: const Text('Delete file?'),
-          content: const Text('This will remove the file from your device storage.'),
+          content: const Text(
+            'This will remove the file from your device storage.',
+          ),
           actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
-            FilledButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Delete')),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Delete'),
+            ),
           ],
         );
       },

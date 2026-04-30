@@ -267,15 +267,15 @@ lib/
 
 ## Manage Documents
 
-* Add → Tag → Access → Delete
+* Choose type → Capture/import → Review metadata → Save → Preview/export/share/delete
 
 ## Resize Image
 
-* Pick → Select preset → Save
+* Pick → Select preset/custom dimensions/target KB → Save
 
 ## Create PDF
 
-* Select images → Generate → Save
+* Select images → Optional target KB → Generate → Review warning/share
 
 ---
 
@@ -300,13 +300,13 @@ lib/
 
 ---
 
-# 🔮 Future Scope
+# Launch-Readiness Updates
 
-* Google Drive backup
-* Premium features
-* Reminders
-* Document checklist
-* Encryption
+* Navigation uses a persistent bottom shell for Info, Docs, Tools, and Settings.
+* Privacy controls include first-run messaging, PIN app lock, sensitive value masking, and delete-all-local-data.
+* Documents are stored as typed records with metadata for file size, dimensions, MIME type, side/page, and notes.
+* Smart exports run from document preview and persist outputs into recent processed files with source/preset metadata.
+* Standalone tools support target-KB compression, custom resize dimensions, and PDF output size warnings.
 
 ---
 

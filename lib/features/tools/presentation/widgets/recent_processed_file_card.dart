@@ -25,9 +25,24 @@ class RecentProcessedFileCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final displayTitle = file.metadata['title'] ?? file.metadata['quality'] ?? file.metadata['preset'] ?? file.type.label;
-    final subtitle = file.metadata['pages'] ?? file.metadata['dimensions'] ?? file.metadata['quality'] ?? 'Saved offline';
-    final sizeHint = FileSizeFormatter.format(File(file.localPath).existsSync() ? File(file.localPath).lengthSync() : 0);
+    final displayTitle =
+        file.metadata['title'] ??
+        file.metadata['quality'] ??
+        file.metadata['preset'] ??
+        file.type.label;
+    final subtitle =
+        file.metadata['sourceTitle'] ??
+        file.metadata['pages'] ??
+        file.metadata['dimensions'] ??
+        file.metadata['quality'] ??
+        'Saved offline';
+    final sizeHint = FileSizeFormatter.format(
+      file.fileSizeBytes > 0
+          ? file.fileSizeBytes
+          : (File(file.localPath).existsSync()
+                ? File(file.localPath).lengthSync()
+                : 0),
+    );
 
     return Card(
       child: InkWell(
@@ -45,7 +60,9 @@ class RecentProcessedFileCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Icon(
-                  file.type == ProcessedFileType.pdf ? Icons.picture_as_pdf : Icons.image_outlined,
+                  file.type == ProcessedFileType.pdf
+                      ? Icons.picture_as_pdf
+                      : Icons.image_outlined,
                   color: theme.colorScheme.primary,
                 ),
               ),
@@ -54,13 +71,30 @@ class RecentProcessedFileCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(displayTitle, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                    Text(
+                      displayTitle,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                     const SizedBox(height: 4),
                     Text(subtitle, style: theme.textTheme.bodyMedium),
+                    if (file.presetId != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        file.presetId!,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 4),
                     Text(
                       '${file.createdAt.toDisplayDate()} • $sizeHint',
-                      style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ),

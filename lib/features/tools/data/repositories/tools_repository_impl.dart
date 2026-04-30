@@ -9,17 +9,26 @@ class ToolsRepositoryImpl implements ToolsRepository {
   final ToolsLocalDataSource _localDataSource;
 
   @override
-  Future<void> deleteProcessedFile(String id) => _localDataSource.deleteProcessedFile(id);
+  Future<void> clearProcessedFiles() => _localDataSource.clearProcessedFiles();
+
+  @override
+  Future<void> deleteProcessedFile(String id) =>
+      _localDataSource.deleteProcessedFile(id);
 
   @override
   Future<List<ProcessedFile>> getProcessedFiles() async {
-    final items = _localDataSource.getProcessedFiles().map((item) => item.toEntity()).toList();
+    final items = _localDataSource
+        .getProcessedFiles()
+        .map((item) => item.toEntity())
+        .toList();
     items.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     return items;
   }
 
   @override
   Future<void> saveProcessedFile(ProcessedFile file) {
-    return _localDataSource.saveProcessedFile(ProcessedFileModel.fromEntity(file));
+    return _localDataSource.saveProcessedFile(
+      ProcessedFileModel.fromEntity(file),
+    );
   }
 }

@@ -30,10 +30,7 @@ class SectionCard extends StatelessWidget {
 
     return Container(
       decoration: decoration,
-      child: Padding(
-        padding: padding,
-        child: child,
-      ),
+      child: Padding(padding: padding, child: child),
     );
   }
 }

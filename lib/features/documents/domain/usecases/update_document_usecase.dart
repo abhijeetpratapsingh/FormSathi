@@ -6,5 +6,6 @@ class UpdateDocumentUseCase {
 
   final DocumentsRepository _repository;
 
-  Future<void> call(SavedDocument document) => _repository.updateDocument(document);
+  Future<void> call(SavedDocument document) =>
+      _repository.updateDocument(document);
 }

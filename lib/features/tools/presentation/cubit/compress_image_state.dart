@@ -10,6 +10,7 @@ class CompressImageState extends Equatable {
     this.outputBytes,
     this.outputPath,
     this.quality = ImageQualityOption.medium,
+    this.customTargetBytes,
     this.processedFile,
     this.isPicking = false,
     this.isCompressing = false,
@@ -21,6 +22,7 @@ class CompressImageState extends Equatable {
   final int? outputBytes;
   final String? outputPath;
   final ImageQualityOption quality;
+  final int? customTargetBytes;
   final ProcessedFile? processedFile;
   final bool isPicking;
   final bool isCompressing;
@@ -35,6 +37,8 @@ class CompressImageState extends Equatable {
     int? outputBytes,
     String? outputPath,
     ImageQualityOption? quality,
+    int? customTargetBytes,
+    bool clearCustomTargetBytes = false,
     ProcessedFile? processedFile,
     bool? isPicking,
     bool? isCompressing,
@@ -48,6 +52,9 @@ class CompressImageState extends Equatable {
       outputBytes: clearResult ? null : (outputBytes ?? this.outputBytes),
       outputPath: clearResult ? null : (outputPath ?? this.outputPath),
       quality: quality ?? this.quality,
+      customTargetBytes: clearCustomTargetBytes
+          ? null
+          : (customTargetBytes ?? this.customTargetBytes),
       processedFile: clearResult ? null : (processedFile ?? this.processedFile),
       isPicking: isPicking ?? this.isPicking,
       isCompressing: isCompressing ?? this.isCompressing,
@@ -57,14 +64,15 @@ class CompressImageState extends Equatable {
 
   @override
   List<Object?> get props => [
-        sourcePath,
-        originalBytes,
-        outputBytes,
-        outputPath,
-        quality,
-        processedFile,
-        isPicking,
-        isCompressing,
-        errorMessage,
-      ];
+    sourcePath,
+    originalBytes,
+    outputBytes,
+    outputPath,
+    quality,
+    customTargetBytes,
+    processedFile,
+    isPicking,
+    isCompressing,
+    errorMessage,
+  ];
 }

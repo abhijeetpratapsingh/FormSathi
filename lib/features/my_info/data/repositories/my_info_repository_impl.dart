@@ -9,6 +9,9 @@ class MyInfoRepositoryImpl implements MyInfoRepository {
   final MyInfoLocalDataSource _localDataSource;
 
   @override
+  Future<void> clearUserInfo() => _localDataSource.clearUserInfo();
+
+  @override
   Future<UserInfo> getUserInfo() async {
     return _localDataSource.getUserInfo()?.toEntity() ?? const UserInfo();
   }

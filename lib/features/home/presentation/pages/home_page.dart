@@ -41,7 +41,9 @@ class HomePage extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.18),
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.25),
+                          ),
                         ),
                         child: Image.asset(
                           'assets/images/formsathi-logo.png',
@@ -92,22 +94,11 @@ class HomePage extends StatelessWidget {
             ),
             const SizedBox(height: AppSizes.md),
             FeatureCard(
-              title: 'My Info',
-              subtitle: 'Save once, copy anytime during form filling.',
+              title: 'Continue to Info',
+              subtitle:
+                  'Use the bottom tabs for Info, Docs, Tools, and Settings.',
               icon: Icons.badge_outlined,
-              onTap: () => context.push('/my-info'),
-            ),
-            FeatureCard(
-              title: 'My Documents',
-              subtitle: 'Keep photo, signature, Aadhaar, PAN, and certificates ready.',
-              icon: Icons.folder_copy_outlined,
-              onTap: () => context.push('/documents'),
-            ),
-            FeatureCard(
-              title: 'Tools',
-              subtitle: 'Resize photos, compress images, and convert images to PDF.',
-              icon: Icons.tune_rounded,
-              onTap: () => context.push('/tools'),
+              onTap: () => context.go('/my-info'),
             ),
           ],
         ),

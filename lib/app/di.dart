@@ -3,6 +3,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import '../core/services/app_directories_service.dart';
 import '../core/services/hive_adapters.dart';
+import '../core/services/export_orchestration_service.dart';
 import '../core/services/image_processing_service.dart';
 import '../core/services/local_file_service.dart';
 import '../core/services/pdf_service.dart';
@@ -21,11 +22,19 @@ import '../features/my_info/data/repositories/my_info_repository_impl.dart';
 import '../features/my_info/domain/repositories/my_info_repository.dart';
 import '../features/my_info/domain/usecases/get_user_info.dart';
 import '../features/my_info/domain/usecases/save_user_info.dart';
+import '../features/settings/data/datasources/privacy_local_data_source.dart';
+import '../features/settings/data/models/app_lock_credential_model.dart';
+import '../features/settings/data/models/privacy_settings_model.dart';
+import '../features/settings/data/repositories/settings_repository_impl.dart';
+import '../features/settings/domain/repositories/settings_repository.dart';
+import '../features/settings/domain/usecases/app_lock_usecases.dart';
+import '../features/settings/domain/usecases/privacy_usecases.dart';
 import '../features/tools/data/datasources/tools_local_data_source.dart';
 import '../features/tools/data/models/processed_file_model.dart';
 import '../features/tools/data/repositories/tools_repository_impl.dart';
 import '../features/tools/domain/repositories/tools_repository.dart';
 import '../features/tools/domain/usecases/delete_processed_file_usecase.dart';
+import '../features/tools/domain/usecases/export_saved_document_usecase.dart';
 import '../features/tools/domain/usecases/load_recent_processed_files_usecase.dart';
 
 final sl = GetIt.instance;
@@ -44,6 +53,13 @@ Future<void> configureDependencies() async {
     ..registerLazySingleton(PermissionService.new)
     ..registerLazySingleton(ImageProcessingService.new)
     ..registerLazySingleton(PdfService.new)
+    ..registerLazySingleton(
+      () => ExportOrchestrationService(
+        imageProcessingService: sl(),
+        pdfService: sl(),
+        localFileService: sl(),
+      ),
+    )
     ..registerLazySingleton<MyInfoLocalDataSource>(
       () => MyInfoLocalDataSource(sl()),
     )
@@ -53,14 +69,22 @@ Future<void> configureDependencies() async {
     ..registerLazySingleton<ToolsLocalDataSource>(
       () => ToolsLocalDataSource(sl()),
     )
-    ..registerLazySingleton<MyInfoRepository>(
-      () => MyInfoRepositoryImpl(sl()),
+    ..registerLazySingleton<PrivacyLocalDataSource>(
+      () => PrivacyLocalDataSource(settingsBox: sl(), credentialBox: sl()),
     )
+    ..registerLazySingleton<MyInfoRepository>(() => MyInfoRepositoryImpl(sl()))
     ..registerLazySingleton<DocumentsRepository>(
       () => DocumentsRepositoryImpl(sl()),
     )
-    ..registerLazySingleton<ToolsRepository>(
-      () => ToolsRepositoryImpl(sl()),
+    ..registerLazySingleton<ToolsRepository>(() => ToolsRepositoryImpl(sl()))
+    ..registerLazySingleton<SettingsRepository>(
+      () => SettingsRepositoryImpl(
+        localDataSource: sl(),
+        myInfoRepository: sl(),
+        documentsRepository: sl(),
+        toolsRepository: sl(),
+        localFileService: sl(),
+      ),
     )
     ..registerLazySingleton(() => GetUserInfo(sl()))
     ..registerLazySingleton(() => SaveUserInfo(sl()))
@@ -70,10 +94,22 @@ Future<void> configureDependencies() async {
     ..registerLazySingleton(() => DeleteDocumentUseCase(sl()))
     ..registerLazySingleton(() => LoadRecentProcessedFilesUseCase(sl()))
     ..registerLazySingleton(
-      () => DeleteProcessedFileUseCase(
-        repository: sl(),
-        localFileService: sl(),
+      () => ExportSavedDocumentUseCase(
+        exportService: sl(),
+        toolsRepository: sl(),
       ),
+    )
+    ..registerLazySingleton(() => GetPrivacySettingsUseCase(sl()))
+    ..registerLazySingleton(() => EnableAppLockUseCase(sl()))
+    ..registerLazySingleton(() => VerifyAppLockUseCase(sl()))
+    ..registerLazySingleton(() => DisableAppLockUseCase(sl()))
+    ..registerLazySingleton(() => ShouldLockUseCase(sl()))
+    ..registerLazySingleton(() => MarkPrivacyIntroSeenUseCase(sl()))
+    ..registerLazySingleton(() => SavePrivacySettingsUseCase(sl()))
+    ..registerLazySingleton(() => WipeLocalDataUseCase(sl()))
+    ..registerLazySingleton(
+      () =>
+          DeleteProcessedFileUseCase(repository: sl(), localFileService: sl()),
     )
     ..registerLazySingleton<Box<UserInfoModel>>(
       () => Hive.box<UserInfoModel>(_BoxNames.userInfo),
@@ -83,7 +119,15 @@ Future<void> configureDependencies() async {
     )
     ..registerLazySingleton<Box<ProcessedFileModel>>(
       () => Hive.box<ProcessedFileModel>(_BoxNames.processedFiles),
+    )
+    ..registerLazySingleton<Box<PrivacySettingsModel>>(
+      () => Hive.box<PrivacySettingsModel>(_BoxNames.privacySettings),
+    )
+    ..registerLazySingleton<Box<AppLockCredentialModel>>(
+      () => Hive.box<AppLockCredentialModel>(_BoxNames.appLockCredential),
     );
+
+  await _runStartupMigrations();
 }
 
 void _registerAdapters() {
@@ -96,12 +140,24 @@ void _registerAdapters() {
   if (!Hive.isAdapterRegistered(2)) {
     Hive.registerAdapter(ProcessedFileModelAdapter());
   }
+  if (!Hive.isAdapterRegistered(3)) {
+    Hive.registerAdapter(PrivacySettingsModelAdapter());
+  }
+  if (!Hive.isAdapterRegistered(4)) {
+    Hive.registerAdapter(AppLockCredentialModelAdapter());
+  }
 }
 
 Future<void> _openBoxes() async {
   await Hive.openBox<UserInfoModel>(_BoxNames.userInfo);
   await Hive.openBox<SavedDocumentModel>(_BoxNames.documents);
   await Hive.openBox<ProcessedFileModel>(_BoxNames.processedFiles);
+  await Hive.openBox<PrivacySettingsModel>(_BoxNames.privacySettings);
+  await Hive.openBox<AppLockCredentialModel>(_BoxNames.appLockCredential);
+}
+
+Future<void> _runStartupMigrations() async {
+  await sl<DocumentsRepository>().migrateCategoryOnlyDocuments();
 }
 
 class _BoxNames {
@@ -110,4 +166,6 @@ class _BoxNames {
   static const userInfo = 'user_info_box';
   static const documents = 'documents_box';
   static const processedFiles = 'processed_files_box';
+  static const privacySettings = 'privacy_settings_box';
+  static const appLockCredential = 'app_lock_credential_box';
 }

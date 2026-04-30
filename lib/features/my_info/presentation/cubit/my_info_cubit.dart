@@ -10,9 +10,9 @@ class MyInfoCubit extends Cubit<MyInfoState> {
   MyInfoCubit({
     required GetUserInfo getUserInfoUseCase,
     required SaveUserInfo saveUserInfoUseCase,
-  })  : _getUserInfoUseCase = getUserInfoUseCase,
-        _saveUserInfoUseCase = saveUserInfoUseCase,
-        super(const MyInfoState());
+  }) : _getUserInfoUseCase = getUserInfoUseCase,
+       _saveUserInfoUseCase = saveUserInfoUseCase,
+       super(const MyInfoState());
 
   final GetUserInfo _getUserInfoUseCase;
   final SaveUserInfo _saveUserInfoUseCase;
@@ -21,17 +21,21 @@ class MyInfoCubit extends Cubit<MyInfoState> {
     emit(state.copyWith(status: MyInfoStatus.loading, clearFeedback: true));
     try {
       final userInfo = await _getUserInfoUseCase();
-      emit(state.copyWith(
-        status: MyInfoStatus.ready,
-        userInfo: userInfo,
-        clearFeedback: true,
-      ));
+      emit(
+        state.copyWith(
+          status: MyInfoStatus.ready,
+          userInfo: userInfo,
+          clearFeedback: true,
+        ),
+      );
     } catch (_) {
-      emit(state.copyWith(
-        status: MyInfoStatus.failure,
-        feedbackMessage: 'Unable to load your saved details.',
-        feedbackVersion: state.feedbackVersion + 1,
-      ));
+      emit(
+        state.copyWith(
+          status: MyInfoStatus.failure,
+          feedbackMessage: 'Unable to load your saved details.',
+          feedbackVersion: state.feedbackVersion + 1,
+        ),
+      );
     }
   }
 
@@ -39,18 +43,22 @@ class MyInfoCubit extends Cubit<MyInfoState> {
     emit(state.copyWith(status: MyInfoStatus.saving, clearFeedback: true));
     try {
       await _saveUserInfoUseCase(userInfo);
-      emit(state.copyWith(
-        status: MyInfoStatus.ready,
-        userInfo: userInfo,
-        feedbackMessage: 'Your details have been saved offline.',
-        feedbackVersion: state.feedbackVersion + 1,
-      ));
+      emit(
+        state.copyWith(
+          status: MyInfoStatus.ready,
+          userInfo: userInfo,
+          feedbackMessage: 'Your details have been saved offline.',
+          feedbackVersion: state.feedbackVersion + 1,
+        ),
+      );
     } catch (_) {
-      emit(state.copyWith(
-        status: MyInfoStatus.failure,
-        feedbackMessage: 'Could not save your details. Please try again.',
-        feedbackVersion: state.feedbackVersion + 1,
-      ));
+      emit(
+        state.copyWith(
+          status: MyInfoStatus.failure,
+          feedbackMessage: 'Could not save your details. Please try again.',
+          feedbackVersion: state.feedbackVersion + 1,
+        ),
+      );
     }
   }
 
@@ -62,54 +70,63 @@ class MyInfoCubit extends Cubit<MyInfoState> {
     emit(state.copyWith(isPanObscured: !state.isPanObscured));
   }
 
-  Future<void> copyField({
-    required String label,
-    required String value,
-  }) async {
+  Future<void> copyField({required String label, required String value}) async {
     final trimmed = value.trim();
     if (trimmed.isEmpty) {
-      emit(state.copyWith(
-        feedbackMessage: '$label is empty.',
-        feedbackVersion: state.feedbackVersion + 1,
-      ));
+      emit(
+        state.copyWith(
+          feedbackMessage: '$label is empty.',
+          feedbackVersion: state.feedbackVersion + 1,
+        ),
+      );
       return;
     }
 
     try {
       await Clipboard.setData(ClipboardData(text: trimmed));
-      emit(state.copyWith(
-        feedbackMessage: '$label copied to clipboard.',
-        feedbackVersion: state.feedbackVersion + 1,
-      ));
+      emit(
+        state.copyWith(
+          feedbackMessage: '$label copied to clipboard.',
+          feedbackVersion: state.feedbackVersion + 1,
+        ),
+      );
     } catch (_) {
-      emit(state.copyWith(
-        feedbackMessage: 'Could not copy $label.',
-        feedbackVersion: state.feedbackVersion + 1,
-      ));
+      emit(
+        state.copyWith(
+          feedbackMessage: 'Could not copy $label.',
+          feedbackVersion: state.feedbackVersion + 1,
+        ),
+      );
     }
   }
 
   Future<void> copyAllInfo(UserInfo userInfo) async {
     final text = _buildCopyText(userInfo);
     if (text.trim().isEmpty) {
-      emit(state.copyWith(
-        feedbackMessage: 'Nothing to copy yet. Add your details first.',
-        feedbackVersion: state.feedbackVersion + 1,
-      ));
+      emit(
+        state.copyWith(
+          feedbackMessage: 'Nothing to copy yet. Add your details first.',
+          feedbackVersion: state.feedbackVersion + 1,
+        ),
+      );
       return;
     }
 
     try {
       await Clipboard.setData(ClipboardData(text: text));
-      emit(state.copyWith(
-        feedbackMessage: 'All details copied to clipboard.',
-        feedbackVersion: state.feedbackVersion + 1,
-      ));
+      emit(
+        state.copyWith(
+          feedbackMessage: 'All details copied to clipboard.',
+          feedbackVersion: state.feedbackVersion + 1,
+        ),
+      );
     } catch (_) {
-      emit(state.copyWith(
-        feedbackMessage: 'Could not copy all details.',
-        feedbackVersion: state.feedbackVersion + 1,
-      ));
+      emit(
+        state.copyWith(
+          feedbackMessage: 'Could not copy all details.',
+          feedbackVersion: state.feedbackVersion + 1,
+        ),
+      );
     }
   }
 
