@@ -6,12 +6,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_sizes.dart';
-import '../../../../core/constants/app_strings.dart';
 import '../../../../core/enums/document_type.dart';
 import '../../../../core/services/local_file_service.dart';
-import '../../../../core/widgets/section_card.dart';
+import '../../../../core/widgets/app_top_header.dart';
 import '../../domain/entities/saved_document.dart';
 import '../cubit/documents_cubit.dart';
 import '../cubit/documents_state.dart';
@@ -35,11 +33,21 @@ class DocumentsPage extends StatefulWidget {
 
 class _DocumentsPageState extends State<DocumentsPage> {
   final ImagePicker _imagePicker = ImagePicker();
+  final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
+  bool _isSearchExpanded = false;
 
   @override
   void initState() {
     super.initState();
     widget.cubit.loadDocuments();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchFocusNode.dispose();
+    super.dispose();
   }
 
   @override
@@ -70,23 +78,56 @@ class _DocumentsPageState extends State<DocumentsPage> {
         builder: (context, state) {
           final cubit = context.read<DocumentsCubit>();
           return Scaffold(
-            appBar: AppBar(
-              title: const Text('My Documents'),
-              actions: [
-                IconButton(
-                  tooltip: 'Refresh',
-                  onPressed: state.isLoading ? null : cubit.loadDocuments,
-                  icon: const Icon(Icons.refresh_rounded),
-                ),
-                const SizedBox(width: 4),
-              ],
+            appBar: AppTopHeader(
+              title: 'Docs',
+              automaticallyImplyLeading: false,
+              titleWidget: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 180),
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeInCubic,
+                child: _isSearchExpanded
+                    ? _TopSearchField(
+                        key: const ValueKey('documents-top-search'),
+                        controller: _searchController,
+                        focusNode: _searchFocusNode,
+                        onChanged: cubit.setSearchQuery,
+                        onClose: () => _collapseSearch(cubit),
+                      )
+                    : const Text(
+                        'Docs',
+                        key: ValueKey('documents-title'),
+                      ),
+              ),
+              titleSpacing: _isSearchExpanded ? AppSizes.md : null,
+              secondaryActions: _isSearchExpanded
+                  ? []
+                  : [
+                      IconButton(
+                        tooltip: 'Search documents',
+                        onPressed: () => _expandSearch(),
+                        constraints: const BoxConstraints(
+                          minWidth: AppSizes.minTouchTarget,
+                          minHeight: AppSizes.minTouchTarget,
+                        ),
+                        icon: const Icon(Icons.search_rounded, size: 20),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(right: AppSizes.sm),
+                        child: DocumentViewModeToggle(
+                          viewMode: state.viewMode,
+                          onToggle: cubit.toggleViewMode,
+                        ),
+                      ),
+                    ],
             ),
-            floatingActionButton: FloatingActionButton.extended(
+            floatingActionButton: FloatingActionButton(
+              tooltip: 'Add document',
               onPressed: state.isProcessing
                   ? null
                   : () => _showAddSheet(context, cubit),
-              icon: const Icon(Icons.add_rounded),
-              label: const Text('Add'),
+              elevation: 3,
+              shape: const CircleBorder(),
+              child: const Icon(Icons.add_rounded),
             ),
             body: SafeArea(
               child: Padding(
@@ -94,50 +135,6 @@ class _DocumentsPageState extends State<DocumentsPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    SectionCard(
-                      gradient: AppColors.primaryGradient(),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'My Documents',
-                            style: Theme.of(context).textTheme.titleLarge
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w800,
-                                  color: Colors.white,
-                                ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            AppStrings.documentsEmpty,
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(
-                                  color: Colors.white.withValues(alpha: 0.9),
-                                ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: AppSizes.md),
-                    TextField(
-                      onChanged: cubit.setSearchQuery,
-                      decoration: const InputDecoration(
-                        hintText: 'Search documents',
-                        prefixIcon: Icon(Icons.search_rounded),
-                      ),
-                    ),
-                    const SizedBox(height: AppSizes.md),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: DocumentViewModeToggle(
-                            viewMode: state.viewMode,
-                            onToggle: cubit.toggleViewMode,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: AppSizes.md),
                     DocumentCategoryFilterBar(
                       selectedType: state.selectedTypeFilter,
                       onSelected: cubit.setTypeFilter,
@@ -160,6 +157,25 @@ class _DocumentsPageState extends State<DocumentsPage> {
     );
   }
 
+  void _expandSearch() {
+    _searchController.text = widget.cubit.state.searchQuery;
+    setState(() {
+      _isSearchExpanded = true;
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _searchFocusNode.requestFocus();
+    });
+  }
+
+  void _collapseSearch(DocumentsCubit cubit) {
+    _searchController.clear();
+    cubit.setSearchQuery('');
+    _searchFocusNode.unfocus();
+    setState(() {
+      _isSearchExpanded = false;
+    });
+  }
+
   Widget _buildContent(
     BuildContext context,
     DocumentsState state,
@@ -178,6 +194,7 @@ class _DocumentsPageState extends State<DocumentsPage> {
 
     if (state.viewMode == DocumentsViewMode.list) {
       return ListView.separated(
+        padding: const EdgeInsets.only(bottom: AppSizes.xl * 3),
         physics: const BouncingScrollPhysics(),
         itemCount: documents.length,
         separatorBuilder: (context, index) =>
@@ -196,6 +213,7 @@ class _DocumentsPageState extends State<DocumentsPage> {
     }
 
     return GridView.builder(
+      padding: const EdgeInsets.only(bottom: AppSizes.xl * 3),
       physics: const BouncingScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
@@ -356,6 +374,48 @@ class _DocumentsPageState extends State<DocumentsPage> {
         builder: (_) => BlocProvider.value(
           value: cubit,
           child: DocumentPreviewPage(documentId: document.id),
+        ),
+      ),
+    );
+  }
+}
+
+class _TopSearchField extends StatelessWidget {
+  const _TopSearchField({
+    required this.controller,
+    required this.focusNode,
+    required this.onChanged,
+    required this.onClose,
+    super.key,
+  });
+
+  final TextEditingController controller;
+  final FocusNode focusNode;
+  final ValueChanged<String> onChanged;
+  final VoidCallback onClose;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: AppSizes.minTouchTarget,
+      child: TextField(
+        controller: controller,
+        focusNode: focusNode,
+        onChanged: onChanged,
+        textInputAction: TextInputAction.search,
+        decoration: InputDecoration(
+          hintText: 'Search documents',
+          prefixIcon: const Icon(Icons.search_rounded),
+          suffixIcon: IconButton(
+            tooltip: 'Close search',
+            onPressed: onClose,
+            constraints: const BoxConstraints(
+              minWidth: AppSizes.minTouchTarget,
+              minHeight: AppSizes.minTouchTarget,
+            ),
+            icon: const Icon(Icons.close_rounded),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: AppSizes.sm),
         ),
       ),
     );

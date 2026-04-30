@@ -17,7 +17,9 @@ class ToolsCubit extends Cubit<ToolsState> {
   Future<void> loadRecentFiles() async {
     emit(state.copyWith(isLoading: true, errorMessage: null));
     try {
-      final files = await _loadRecentProcessedFilesUseCase.call();
+      final files = (await _loadRecentProcessedFilesUseCase.call())
+          .where((file) => file.sourceDocumentId == null)
+          .toList(growable: false);
       emit(
         state.copyWith(
           isLoading: false,

@@ -39,7 +39,10 @@ class MyInfoCubit extends Cubit<MyInfoState> {
     }
   }
 
-  Future<void> saveUserInfo(UserInfo userInfo) async {
+  Future<void> saveUserInfo(
+    UserInfo userInfo, {
+    bool showFeedback = true,
+  }) async {
     emit(state.copyWith(status: MyInfoStatus.saving, clearFeedback: true));
     try {
       await _saveUserInfoUseCase(userInfo);
@@ -47,7 +50,9 @@ class MyInfoCubit extends Cubit<MyInfoState> {
         state.copyWith(
           status: MyInfoStatus.ready,
           userInfo: userInfo,
-          feedbackMessage: 'Your details have been saved offline.',
+          feedbackMessage: showFeedback
+              ? 'Your details have been saved offline.'
+              : null,
           feedbackVersion: state.feedbackVersion + 1,
         ),
       );
@@ -55,7 +60,9 @@ class MyInfoCubit extends Cubit<MyInfoState> {
       emit(
         state.copyWith(
           status: MyInfoStatus.failure,
-          feedbackMessage: 'Could not save your details. Please try again.',
+          feedbackMessage: showFeedback
+              ? 'Could not save your details. Please try again.'
+              : null,
           feedbackVersion: state.feedbackVersion + 1,
         ),
       );
@@ -156,6 +163,11 @@ class MyInfoCubit extends Cubit<MyInfoState> {
     addLine('Qualification', userInfo.qualification);
     addLine('Category', userInfo.category);
     addLine('Nationality', userInfo.nationality);
+    for (final section in userInfo.customSections) {
+      for (final field in section.fields) {
+        addLine('${section.title} - ${field.label}', field.value);
+      }
+    }
 
     return buffer.toString().trim();
   }

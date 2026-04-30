@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../constants/app_sizes.dart';
+import 'enterprise_top_bar.dart';
 
 class AppScaffold extends StatelessWidget {
   const AppScaffold({
@@ -19,7 +20,7 @@ class AppScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(title), actions: actions),
+      appBar: EnterpriseTopBar(title: title, actions: actions, compact: true),
       floatingActionButton: floatingActionButton,
       body: SafeArea(
         child: Padding(padding: const EdgeInsets.all(AppSizes.md), child: body),

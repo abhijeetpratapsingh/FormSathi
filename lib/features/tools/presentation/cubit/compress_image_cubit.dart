@@ -113,6 +113,10 @@ class CompressImageCubit extends Cubit<CompressImageState> {
     }
   }
 
+  void clearAll() {
+    emit(const CompressImageState());
+  }
+
   String _message(Object error) {
     if (error is AppException) {
       return error.message;

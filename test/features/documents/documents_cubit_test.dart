@@ -16,6 +16,10 @@ import 'package:formsathi/features/documents/presentation/cubit/documents_cubit.
 import 'package:formsathi/features/documents/presentation/cubit/documents_state.dart';
 
 void main() {
+  test('documents default to list view', () {
+    expect(const DocumentsState().viewMode, DocumentsViewMode.list);
+  });
+
   test('type-first add flow saves metadata and clears draft', () async {
     final temp = await Directory.systemTemp.createTemp('formsathi_docs_test');
     addTearDown(() => temp.delete(recursive: true));

@@ -46,7 +46,7 @@ class RecentProcessedFileCard extends StatelessWidget {
 
     return Card(
       child: InkWell(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: AppSizes.cardRadius,
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(AppSizes.md),
@@ -57,7 +57,7 @@ class RecentProcessedFileCard extends StatelessWidget {
                 height: 54,
                 decoration: BoxDecoration(
                   color: theme.colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
                   file.type == ProcessedFileType.pdf

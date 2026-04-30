@@ -16,7 +16,7 @@ class DocumentCategoryFilterBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 44,
+      height: AppSizes.minTouchTarget,
       child: ListView(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
@@ -61,11 +61,11 @@ class _FilterChip extends StatelessWidget {
       onSelected: (_) => onTap(),
       labelStyle: TextStyle(
         color: selected
-            ? theme.colorScheme.onPrimary
+            ? theme.colorScheme.primary
             : theme.colorScheme.onSurface,
         fontWeight: FontWeight.w600,
       ),
-      selectedColor: theme.colorScheme.primary,
+      selectedColor: theme.colorScheme.primaryContainer,
       side: BorderSide(color: theme.colorScheme.outline),
       shape: const RoundedRectangleBorder(borderRadius: AppSizes.fieldRadius),
     );

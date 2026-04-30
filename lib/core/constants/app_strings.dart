@@ -15,6 +15,7 @@ class AppStrings {
       'FormSathi keeps your info, documents, and generated files on this device. No account, backend, or cloud sync is required.';
   static const appLockTitle = 'App lock';
   static const appLockSubtitle = 'Protect Info and Docs with a PIN.';
+  static const deleteAllInfoAction = 'Delete all info from this device';
   static const deleteAllDataTitle = 'Delete all local data';
   static const deleteAllDataSubtitle =
       'Remove saved info, documents, and processed files from this device.';

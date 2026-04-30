@@ -61,7 +61,7 @@ class _AppLockPageState extends State<AppLockPage> {
                   await _cubit.unlock(_controller.text);
                   if (_cubit.state.status == AppLockStatus.unlocked &&
                       context.mounted) {
-                    context.go('/my-info');
+                    context.go('/home');
                     return;
                   }
                   setState(() => _error = _cubit.state.errorMessage);

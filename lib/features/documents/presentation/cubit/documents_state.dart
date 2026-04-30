@@ -13,7 +13,7 @@ class DocumentsState extends Equatable {
     this.selectedCategory,
     this.selectedTypeFilter,
     this.searchQuery = '',
-    this.viewMode = DocumentsViewMode.grid,
+    this.viewMode = DocumentsViewMode.list,
     this.isLoading = false,
     this.isProcessing = false,
     this.isMigrating = false,

@@ -132,6 +132,10 @@ class ImageToPdfCubit extends Cubit<ImageToPdfState> {
     }
   }
 
+  void clearAll() {
+    emit(const ImageToPdfState());
+  }
+
   void _ingestPaths(List<String> paths) {
     final merged = <String>{
       ...state.imagePaths,

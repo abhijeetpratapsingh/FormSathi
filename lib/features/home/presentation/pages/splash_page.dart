@@ -32,7 +32,7 @@ class _SplashPageState extends State<SplashPage> {
           }
         }
         if (!mounted) return;
-        context.go('/my-info');
+        context.go('/home');
       }
     });
   }
@@ -41,8 +41,9 @@ class _SplashPageState extends State<SplashPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: DecoratedBox(
-        decoration: BoxDecoration(gradient: AppColors.primaryGradient()),
+        decoration: const BoxDecoration(color: Colors.white),
         child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -52,11 +53,16 @@ class _SplashPageState extends State<SplashPage> {
                 width: 96,
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.16),
-                  borderRadius: BorderRadius.circular(28),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.25),
-                  ),
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: AppColors.border),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.06),
+                      blurRadius: 18,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
                 ),
                 child: Image.asset(
                   'assets/images/formsathi-logo.png',
@@ -67,7 +73,7 @@ class _SplashPageState extends State<SplashPage> {
               Text(
                 AppStrings.appName,
                 style: theme.textTheme.headlineMedium?.copyWith(
-                  color: Colors.white,
+                  color: AppColors.foreground,
                   fontWeight: FontWeight.w800,
                 ),
               ),
@@ -75,7 +81,7 @@ class _SplashPageState extends State<SplashPage> {
               Text(
                 AppStrings.tagline,
                 style: theme.textTheme.bodyLarge?.copyWith(
-                  color: Colors.white.withValues(alpha: 0.86),
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
             ],

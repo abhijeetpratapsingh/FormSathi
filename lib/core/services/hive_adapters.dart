@@ -12,24 +12,47 @@ class UserInfoModelAdapter extends TypeAdapter<UserInfoModel> {
 
   @override
   UserInfoModel read(BinaryReader reader) {
+    final fullName = reader.readString();
+    final fatherName = reader.readString();
+    final motherName = reader.readString();
+    final dob = reader.read();
+    final gender = reader.readString();
+    final phone = reader.readString();
+    final email = reader.readString();
+    final address = reader.readString();
+    final city = reader.readString();
+    final state = reader.readString();
+    final pinCode = reader.readString();
+    final aadhaar = reader.readString();
+    final pan = reader.readString();
+    final schoolCollege = reader.readString();
+    final qualification = reader.readString();
+    final category = reader.readString();
+    final nationality = reader.readString();
+    final next = _tryRead(reader);
+    final profilePhotoPath = next is String ? next : '';
+    final customSectionsValue = next is String ? _tryRead(reader) : next;
+
     return UserInfoModel(
-      fullName: reader.readString(),
-      fatherName: reader.readString(),
-      motherName: reader.readString(),
-      dob: reader.read(),
-      gender: reader.readString(),
-      phone: reader.readString(),
-      email: reader.readString(),
-      address: reader.readString(),
-      city: reader.readString(),
-      state: reader.readString(),
-      pinCode: reader.readString(),
-      aadhaar: reader.readString(),
-      pan: reader.readString(),
-      schoolCollege: reader.readString(),
-      qualification: reader.readString(),
-      category: reader.readString(),
-      nationality: reader.readString(),
+      fullName: fullName,
+      fatherName: fatherName,
+      motherName: motherName,
+      dob: dob,
+      gender: gender,
+      phone: phone,
+      email: email,
+      address: address,
+      city: city,
+      state: state,
+      pinCode: pinCode,
+      aadhaar: aadhaar,
+      pan: pan,
+      schoolCollege: schoolCollege,
+      qualification: qualification,
+      category: category,
+      nationality: nationality,
+      profilePhotoPath: profilePhotoPath,
+      customSections: UserInfoModel.customSectionsFromJson(customSectionsValue),
     );
   }
 
@@ -52,7 +75,9 @@ class UserInfoModelAdapter extends TypeAdapter<UserInfoModel> {
       ..writeString(obj.schoolCollege)
       ..writeString(obj.qualification)
       ..writeString(obj.category)
-      ..writeString(obj.nationality);
+      ..writeString(obj.nationality)
+      ..write(obj.profilePhotoPath)
+      ..write(obj.customSectionsToJson());
   }
 }
 
@@ -65,45 +90,37 @@ class SavedDocumentModelAdapter extends TypeAdapter<SavedDocumentModel> {
     final id = reader.readString();
     final title = reader.readString();
     final categoryName = reader.readString();
-    final next = reader.read();
-    if (next is String) {
-      final maybeNext = _tryRead(reader);
-      if (maybeNext is DateTime) {
-        final updatedAt = _tryRead(reader) as DateTime? ?? maybeNext;
-        return SavedDocumentModel(
-          id: id,
-          title: title,
-          categoryName: categoryName,
-          localPath: next,
-          createdAt: maybeNext,
-          updatedAt: updatedAt,
-        );
-      }
+    final documentTypeOrLegacyPath = reader.readString();
+
+    if (!_documentTypeNames.contains(documentTypeOrLegacyPath)) {
+      final createdAt = _tryRead(reader) as DateTime? ?? DateTime.now();
+      final updatedAt = _tryRead(reader) as DateTime? ?? createdAt;
       return SavedDocumentModel(
         id: id,
         title: title,
         categoryName: categoryName,
-        documentTypeName: next,
-        localPath: maybeNext as String? ?? '',
-        originalFileName: _tryRead(reader) as String? ?? '',
-        mimeType: _tryRead(reader) as String? ?? '',
-        fileSizeBytes: _tryRead(reader) as int? ?? 0,
-        width: _tryRead(reader) as int?,
-        height: _tryRead(reader) as int?,
-        pageCount: _tryRead(reader) as int?,
-        sideName: _tryRead(reader) as String? ?? 'none',
-        notes: _tryRead(reader) as String? ?? '',
-        createdAt: _tryRead(reader) as DateTime? ?? DateTime.now(),
-        updatedAt: _tryRead(reader) as DateTime? ?? DateTime.now(),
+        localPath: documentTypeOrLegacyPath,
+        createdAt: createdAt,
+        updatedAt: updatedAt,
       );
     }
+
     return SavedDocumentModel(
       id: id,
       title: title,
       categoryName: categoryName,
-      localPath: '',
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
+      documentTypeName: documentTypeOrLegacyPath,
+      localPath: _tryReadString(reader),
+      originalFileName: _tryReadString(reader),
+      mimeType: _tryReadString(reader),
+      fileSizeBytes: _tryRead(reader) as int? ?? 0,
+      width: _tryRead(reader) as int?,
+      height: _tryRead(reader) as int?,
+      pageCount: _tryRead(reader) as int?,
+      sideName: _tryReadString(reader, fallback: 'none'),
+      notes: _tryReadString(reader),
+      createdAt: _tryRead(reader) as DateTime? ?? DateTime.now(),
+      updatedAt: _tryRead(reader) as DateTime? ?? DateTime.now(),
     );
   }
 
@@ -127,6 +144,17 @@ class SavedDocumentModelAdapter extends TypeAdapter<SavedDocumentModel> {
       ..write(obj.updatedAt);
   }
 }
+
+const Set<String> _documentTypeNames = {
+  'passportPhoto',
+  'signature',
+  'aadhaar',
+  'pan',
+  'resume',
+  'marksheet',
+  'certificate',
+  'other',
+};
 
 class ProcessedFileModelAdapter extends TypeAdapter<ProcessedFileModel> {
   @override
@@ -228,5 +256,13 @@ Object? _tryRead(BinaryReader reader) {
     return reader.read();
   } catch (_) {
     return null;
+  }
+}
+
+String _tryReadString(BinaryReader reader, {String fallback = ''}) {
+  try {
+    return reader.readString();
+  } catch (_) {
+    return fallback;
   }
 }

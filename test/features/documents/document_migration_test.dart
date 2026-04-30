@@ -45,4 +45,46 @@ void main() {
     expect(migrated.documentTypeName, 'signature');
     expect(migrated.categoryName, 'signature');
   });
+
+  test(
+    'round-trips typed document fields without corrupting string reads',
+    () async {
+      final box = await Hive.openBox<SavedDocumentModel>('documents');
+      final now = DateTime(2026, 5);
+      await box.put(
+        'doc-2',
+        SavedDocumentModel(
+          id: 'doc-2',
+          title: 'Aadhaar front',
+          categoryName: 'aadhaar',
+          documentTypeName: 'aadhaar',
+          localPath: '/tmp/aadhaar-front.jpg',
+          originalFileName: 'aadhaar-front.jpg',
+          mimeType: 'image/jpeg',
+          fileSizeBytes: 2048,
+          width: 1200,
+          height: 800,
+          pageCount: null,
+          sideName: 'front',
+          notes: 'Clear scan',
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+
+      await box.close();
+      final reopened = await Hive.openBox<SavedDocumentModel>('documents');
+      final document = reopened.get('doc-2')!;
+
+      expect(document.documentTypeName, 'aadhaar');
+      expect(document.localPath, '/tmp/aadhaar-front.jpg');
+      expect(document.originalFileName, 'aadhaar-front.jpg');
+      expect(document.mimeType, 'image/jpeg');
+      expect(document.fileSizeBytes, 2048);
+      expect(document.width, 1200);
+      expect(document.height, 800);
+      expect(document.sideName, 'front');
+      expect(document.notes, 'Clear scan');
+    },
+  );
 }

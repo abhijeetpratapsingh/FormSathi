@@ -47,7 +47,7 @@ class _PrivacyIntroPageState extends State<PrivacyIntroPage> {
             FilledButton(
               onPressed: () async {
                 await _cubit.markIntroSeen();
-                if (context.mounted) context.go('/my-info');
+                if (context.mounted) context.go('/home');
               },
               child: const Text('Continue'),
             ),

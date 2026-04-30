@@ -19,6 +19,8 @@ class UserInfo extends Equatable {
     this.qualification = '',
     this.category = '',
     this.nationality = '',
+    this.profilePhotoPath = '',
+    this.customSections = const <CustomInfoSection>[],
   });
 
   final String fullName;
@@ -38,9 +40,15 @@ class UserInfo extends Equatable {
   final String qualification;
   final String category;
   final String nationality;
+  final String profilePhotoPath;
+  final List<CustomInfoSection> customSections;
 
-  bool get isEmpty =>
-      props.every((element) => element == null || element == '');
+  bool get isEmpty => props.every((element) {
+    if (element is List<CustomInfoSection>) {
+      return element.isEmpty;
+    }
+    return element == null || element == '';
+  });
 
   UserInfo copyWith({
     String? fullName,
@@ -61,6 +69,8 @@ class UserInfo extends Equatable {
     String? qualification,
     String? category,
     String? nationality,
+    String? profilePhotoPath,
+    List<CustomInfoSection>? customSections,
   }) {
     return UserInfo(
       fullName: fullName ?? this.fullName,
@@ -80,6 +90,8 @@ class UserInfo extends Equatable {
       qualification: qualification ?? this.qualification,
       category: category ?? this.category,
       nationality: nationality ?? this.nationality,
+      profilePhotoPath: profilePhotoPath ?? this.profilePhotoPath,
+      customSections: customSections ?? this.customSections,
     );
   }
 
@@ -102,5 +114,65 @@ class UserInfo extends Equatable {
     qualification,
     category,
     nationality,
+    profilePhotoPath,
+    customSections,
   ];
+}
+
+class CustomInfoSection extends Equatable {
+  const CustomInfoSection({
+    required this.id,
+    required this.title,
+    this.fields = const <CustomInfoField>[],
+  });
+
+  final String id;
+  final String title;
+  final List<CustomInfoField> fields;
+
+  CustomInfoSection copyWith({
+    String? id,
+    String? title,
+    List<CustomInfoField>? fields,
+  }) {
+    return CustomInfoSection(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      fields: fields ?? this.fields,
+    );
+  }
+
+  @override
+  List<Object?> get props => [id, title, fields];
+}
+
+class CustomInfoField extends Equatable {
+  const CustomInfoField({
+    required this.label,
+    required this.value,
+    this.fieldType = 'Text',
+    this.isRequired = false,
+  });
+
+  final String label;
+  final String value;
+  final String fieldType;
+  final bool isRequired;
+
+  CustomInfoField copyWith({
+    String? label,
+    String? value,
+    String? fieldType,
+    bool? isRequired,
+  }) {
+    return CustomInfoField(
+      label: label ?? this.label,
+      value: value ?? this.value,
+      fieldType: fieldType ?? this.fieldType,
+      isRequired: isRequired ?? this.isRequired,
+    );
+  }
+
+  @override
+  List<Object?> get props => [label, value, fieldType, isRequired];
 }

@@ -22,7 +22,6 @@ class AppRouter {
     initialLocation: '/',
     routes: [
       GoRoute(path: '/', builder: (context, state) => const SplashPage()),
-      GoRoute(path: '/home', builder: (context, state) => const HomePage()),
       GoRoute(
         path: '/privacy-intro',
         builder: (context, state) => const PrivacyIntroPage(),
@@ -35,6 +34,10 @@ class AppRouter {
         builder: (context, state, child) =>
             AppNavigationShell(currentLocation: state.uri.path, child: child),
         routes: [
+          GoRoute(
+            path: '/home',
+            builder: (context, state) => const HomePage(),
+          ),
           GoRoute(
             path: '/my-info',
             builder: (context, state) => MyInfoPage(

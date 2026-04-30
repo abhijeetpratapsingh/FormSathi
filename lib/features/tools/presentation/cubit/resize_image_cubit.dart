@@ -127,6 +127,10 @@ class ResizeImageCubit extends Cubit<ResizeImageState> {
     }
   }
 
+  void clearAll() {
+    emit(const ResizeImageState());
+  }
+
   String _message(Object error) {
     if (error is AppException) {
       return error.message;
