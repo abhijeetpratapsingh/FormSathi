@@ -8,19 +8,15 @@ void main() {
     tester,
   ) async {
     final router = GoRouter(
-      initialLocation: '/my-info',
+      initialLocation: '/home',
       routes: [
         ShellRoute(
           builder: (context, state, child) =>
               AppNavigationShell(currentLocation: state.uri.path, child: child),
           routes: [
             GoRoute(
-              path: '/my-info',
-              builder: (context, state) => const Text('Info page'),
-            ),
-            GoRoute(
-              path: '/documents',
-              builder: (context, state) => const Text('Docs page'),
+              path: '/home',
+              builder: (context, state) => const Text('Home page'),
             ),
             GoRoute(
               path: '/tools',
@@ -30,6 +26,14 @@ void main() {
               path: '/settings',
               builder: (context, state) => const Text('Settings page'),
             ),
+            GoRoute(
+              path: '/my-info',
+              builder: (context, state) => const Text('Info page'),
+            ),
+            GoRoute(
+              path: '/documents',
+              builder: (context, state) => const Text('Docs page'),
+            ),
           ],
         ),
       ],
@@ -37,14 +41,17 @@ void main() {
 
     await tester.pumpWidget(MaterialApp.router(routerConfig: router));
 
-    expect(find.text('Info'), findsOneWidget);
-    expect(find.text('Docs'), findsOneWidget);
+    expect(find.text('Home'), findsOneWidget);
     expect(find.text('Tools'), findsOneWidget);
     expect(find.text('Settings'), findsOneWidget);
+    expect(find.text('Home page'), findsOneWidget);
 
-    await tester.tap(find.text('Docs'));
+    await tester.tap(find.text('Settings'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Docs page'), findsOneWidget);
+    expect(find.text('Settings page'), findsOneWidget);
+    expect(find.text('Home'), findsOneWidget);
+    expect(find.text('Tools'), findsOneWidget);
+    expect(find.text('Settings'), findsOneWidget);
   });
 }

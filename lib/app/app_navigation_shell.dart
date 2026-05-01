@@ -92,11 +92,8 @@ class _AppNavigationShellState extends State<AppNavigationShell>
   }
 
   int _selectedIndex(String location) {
-    if (location.startsWith('/home')) return 0;
-    if (location.startsWith('/documents')) return 1;
-    if (location.startsWith('/tools')) return 2;
-    if (location.startsWith('/settings')) return 3;
-    if (location.startsWith('/my-info')) return 4;
+    if (location.startsWith('/tools')) return 1;
+    if (location.startsWith('/settings')) return 2;
     return 0;
   }
 }
@@ -180,36 +177,55 @@ class _FloatingBottomNavBar extends StatelessWidget {
                               child: Tooltip(
                                 message: item.label,
                                 child: SizedBox(
-                                  height: 46,
+                                  height: 54,
                                   child: Center(
-                                    child: AnimatedSwitcher(
-                                      duration: const Duration(
-                                        milliseconds: 180,
-                                      ),
-                                      transitionBuilder: (child, animation) {
-                                        return FadeTransition(
-                                          opacity: animation,
-                                          child: ScaleTransition(
-                                            scale: Tween<double>(
-                                              begin: 0.9,
-                                              end: 1.0,
-                                            ).animate(animation),
-                                            child: child,
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        AnimatedSwitcher(
+                                          duration: const Duration(
+                                            milliseconds: 180,
                                           ),
-                                        );
-                                      },
-                                      child: Icon(
-                                        isSelected
-                                            ? item.selectedIcon
-                                            : item.icon,
-                                        key: ValueKey<bool>(isSelected),
-                                        size: 28,
-                                        color: isSelected
-                                            ? activeColor
-                                            : theme
-                                                  .colorScheme
-                                                  .onSurfaceVariant,
-                                      ),
+                                          transitionBuilder: (child, animation) {
+                                            return FadeTransition(
+                                              opacity: animation,
+                                              child: ScaleTransition(
+                                                scale: Tween<double>(
+                                                  begin: 0.9,
+                                                  end: 1.0,
+                                                ).animate(animation),
+                                                child: child,
+                                              ),
+                                            );
+                                          },
+                                          child: Icon(
+                                            isSelected
+                                                ? item.selectedIcon
+                                                : item.icon,
+                                            key: ValueKey<bool>(isSelected),
+                                            size: 24,
+                                            color: isSelected
+                                                ? activeColor
+                                                : theme
+                                                      .colorScheme
+                                                      .onSurfaceVariant,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          item.label,
+                                          style: theme.textTheme.labelSmall?.copyWith(
+                                            color: isSelected
+                                                ? activeColor
+                                                : theme
+                                                      .colorScheme
+                                                      .onSurfaceVariant,
+                                            fontWeight: isSelected
+                                                ? FontWeight.w800
+                                                : FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ),
@@ -247,10 +263,8 @@ class AppRouterTabs {
 
   static const locations = [
     '/home',
-    '/documents',
     '/tools',
     '/settings',
-    '/my-info',
   ];
 
   static const items = [
@@ -260,24 +274,14 @@ class AppRouterTabs {
       selectedIcon: Icons.home,
     ),
     _BottomNavigationItem(
-      label: 'Search',
-      icon: Icons.search_outlined,
-      selectedIcon: Icons.search,
+      label: 'Tools',
+      icon: Icons.construction_outlined,
+      selectedIcon: Icons.construction,
     ),
     _BottomNavigationItem(
-      label: 'Gallery',
-      icon: Icons.collections_outlined,
-      selectedIcon: Icons.collections,
-    ),
-    _BottomNavigationItem(
-      label: 'Cart',
-      icon: Icons.shopping_cart_outlined,
-      selectedIcon: Icons.shopping_cart,
-    ),
-    _BottomNavigationItem(
-      label: 'Profile',
-      icon: Icons.person_outline,
-      selectedIcon: Icons.person,
+      label: 'Settings',
+      icon: Icons.settings_outlined,
+      selectedIcon: Icons.settings,
     ),
   ];
 }

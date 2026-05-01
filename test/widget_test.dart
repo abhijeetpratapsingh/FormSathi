@@ -8,12 +8,13 @@ void main() {
     await tester.pumpWidget(
       const MaterialApp(
         home: AppNavigationShell(
-          currentLocation: '/my-info',
-          child: Text('Info page'),
+          currentLocation: '/home',
+          child: Text('Home page'),
         ),
       ),
     );
-    expect(find.text('Info'), findsOneWidget);
-    expect(find.text('Docs'), findsOneWidget);
+    expect(find.text('Home'), findsOneWidget);
+    expect(find.text('Tools'), findsOneWidget);
+    expect(find.text('Settings'), findsOneWidget);
   });
 }

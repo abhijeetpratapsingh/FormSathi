@@ -1,13 +1,7 @@
 import 'dart:async';
-import 'dart:io';
-
-import 'package:crop_your_image/crop_your_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/services.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_sizes.dart';
@@ -15,12 +9,12 @@ import '../../../../core/constants/app_strings.dart';
 import '../../../../core/utils/sensitive_value_formatter.dart';
 import '../../../../core/widgets/app_top_header.dart';
 import '../../../../core/widgets/section_card.dart';
-import '../../../../core/widgets/empty_state_card.dart';
 import '../../domain/entities/user_info.dart';
 import '../cubit/my_info_cubit.dart';
 import '../cubit/my_info_state.dart';
 import '../widgets/my_info_date_field.dart';
 import '../widgets/my_info_input_field.dart';
+import '../widgets/profile_overview_card.dart';
 
 class MyInfoPage extends StatefulWidget {
   const MyInfoPage({required this.cubit, super.key});
@@ -50,8 +44,6 @@ class _MyInfoPageState extends State<MyInfoPage> with WidgetsBindingObserver {
   final _qualificationController = TextEditingController();
   final _categoryController = TextEditingController();
   final _nationalityController = TextEditingController();
-  final ImagePicker _imagePicker = ImagePicker();
-  final _snapshotKey = GlobalKey();
   final _personalKey = GlobalKey();
   final _contactKey = GlobalKey();
   final _sensitiveKey = GlobalKey();
@@ -364,11 +356,11 @@ class _MyInfoPageState extends State<MyInfoPage> with WidgetsBindingObserver {
     return Icons.check_circle_outline_rounded;
   }
 
-  _StatusTone _autosaveTone(MyInfoState state) {
+  ProfileOverviewTone _autosaveTone(MyInfoState state) {
     if (state.status == MyInfoStatus.failure || _hasPendingAutosave) {
-      return _StatusTone.warning;
+      return ProfileOverviewTone.warning;
     }
-    return _StatusTone.success;
+    return ProfileOverviewTone.success;
   }
 
   void _scheduleAutosave() {
@@ -391,73 +383,6 @@ class _MyInfoPageState extends State<MyInfoPage> with WidgetsBindingObserver {
         _lastAutosavedAt = DateTime.now();
       }
     });
-  }
-
-  Future<void> _pickProfilePhoto() async {
-    final navigator = Navigator.of(context);
-    final messenger = ScaffoldMessenger.of(context);
-    final choice = await showModalBottomSheet<_AvatarAction>(
-      context: context,
-      showDragHandle: true,
-      builder: (context) => const _AvatarActionSheet(),
-    );
-    if (choice == null) return;
-    if (choice == _AvatarAction.remove) {
-      setState(() {
-        _profilePhotoPath = '';
-        _hasPendingAutosave = true;
-      });
-      _scheduleAutosave();
-      return;
-    }
-    final source = choice == _AvatarAction.camera
-        ? ImageSource.camera
-        : ImageSource.gallery;
-    final picked = await _imagePicker.pickImage(
-      source: source,
-      imageQuality: 88,
-      maxWidth: 1024,
-      maxHeight: 1024,
-    );
-    if (picked == null) return;
-    try {
-      final croppedBytes = await navigator.push<Uint8List>(
-        MaterialPageRoute(
-          fullscreenDialog: true,
-          builder: (_) => _ProfilePhotoCropPage(
-            imageBytes: File(picked.path).readAsBytesSync(),
-          ),
-        ),
-      );
-      if (croppedBytes == null) return;
-      final savedPath = await _saveProfilePhotoBytes(croppedBytes);
-      setState(() {
-        _profilePhotoPath = savedPath;
-        _hasPendingAutosave = true;
-      });
-      _scheduleAutosave();
-    } catch (_) {
-      if (!mounted) return;
-      messenger.showSnackBar(
-        const SnackBar(content: Text('Could not save profile photo.')),
-      );
-    }
-  }
-
-  Future<String> _saveProfilePhotoBytes(Uint8List bytes) async {
-    final baseDir = await getApplicationDocumentsDirectory();
-    final directory = Directory(p.join(baseDir.path, 'app_data', 'profile'));
-    if (!await directory.exists()) {
-      await directory.create(recursive: true);
-    }
-    final destination = File(
-      p.join(
-        directory.path,
-        'profile_${DateTime.now().millisecondsSinceEpoch}.png',
-      ),
-    );
-    await destination.writeAsBytes(bytes, flush: true);
-    return destination.path;
   }
 
   Future<void> _showAddSectionSheet() async {
@@ -720,8 +645,7 @@ class _MyInfoPageState extends State<MyInfoPage> with WidgetsBindingObserver {
 
     final targetContext =
         target.fieldKey.currentContext ?? target.sectionKey.currentContext;
-    if (targetContext == null) return;
-    if (!targetContext.mounted) return;
+    if (targetContext == null || !targetContext.mounted) return;
     await Scrollable.ensureVisible(
       targetContext,
       duration: const Duration(milliseconds: 320),
@@ -907,18 +831,15 @@ class _MyInfoPageState extends State<MyInfoPage> with WidgetsBindingObserver {
                           AppSizes.lg,
                         ),
                         children: [
-                          _InfoOverviewCard(
-                            key: _snapshotKey,
+                          ProfileOverviewCard(
                             completion: _completionFor(_trackedControllers),
                             segments: _completionSegments(),
                             nextStep: _recommendedNextStep(),
-                            onTap: _goToNextIncomplete,
                             autosaveLabel: _autosaveLabel(state),
                             autosaveIcon: _autosaveIcon(state),
                             autosaveTone: _autosaveTone(state),
-                            profilePhotoPath: _profilePhotoPath,
                             displayName: _fullNameController.text.trim(),
-                            onAvatarTap: _pickProfilePhoto,
+                            onTap: _goToNextIncomplete,
                             onRetrySave: state.status == MyInfoStatus.failure
                                 ? _save
                                 : null,
@@ -929,25 +850,6 @@ class _MyInfoPageState extends State<MyInfoPage> with WidgetsBindingObserver {
                                   ),
                           ),
                           const SizedBox(height: AppSizes.md),
-                          if (!state.hasUserInfo) ...[
-                            EmptyStateCard(
-                              icon: Icons.badge_outlined,
-                              title: 'My Info',
-                              message: state.status == MyInfoStatus.failure
-                                  ? 'Could not load saved details. Try again.'
-                                  : AppStrings.myInfoEmpty,
-                              action: state.status == MyInfoStatus.failure
-                                  ? TextButton.icon(
-                                      onPressed: state.isBusy
-                                          ? null
-                                          : widget.cubit.loadUserInfo,
-                                      icon: const Icon(Icons.refresh_rounded),
-                                      label: const Text('Try Again'),
-                                    )
-                                  : null,
-                            ),
-                            const SizedBox(height: AppSizes.md),
-                          ],
                           _SwipeableSection(
                             dismissKey: const ValueKey('personal-section'),
                             onCopy: () => _copySection('Personal Details', {
@@ -2464,446 +2366,6 @@ class _AddInfoFieldSheetState extends State<_AddInfoFieldSheet> {
 }
 
 enum _StatusTone { success, warning, info }
-
-class _InfoOverviewCard extends StatelessWidget {
-  const _InfoOverviewCard({
-    required this.completion,
-    required this.segments,
-    required this.nextStep,
-    required this.autosaveLabel,
-    required this.autosaveIcon,
-    required this.autosaveTone,
-    required this.profilePhotoPath,
-    required this.displayName,
-    required this.onTap,
-    required this.onAvatarTap,
-    required this.onRetrySave,
-    required this.onCopyAll,
-    super.key,
-  });
-
-  final double completion;
-  final List<bool> segments;
-  final String nextStep;
-  final String autosaveLabel;
-  final IconData autosaveIcon;
-  final _StatusTone autosaveTone;
-  final String profilePhotoPath;
-  final String displayName;
-  final VoidCallback onTap;
-  final VoidCallback onAvatarTap;
-  final VoidCallback? onRetrySave;
-  final VoidCallback? onCopyAll;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final percent = (completion * 100).round();
-    return SectionCard(
-      backgroundColor: AppColors.surface,
-      padding: EdgeInsets.zero,
-      child: InkWell(
-        borderRadius: AppSizes.cardRadius,
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(AppSizes.md),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _ProfileAvatar(
-                    photoPath: profilePhotoPath,
-                    displayName: displayName,
-                    onTap: onAvatarTap,
-                  ),
-                  const SizedBox(width: AppSizes.md),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Your Information',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        const SizedBox(height: AppSizes.xs),
-                        Text(
-                          'Complete your profile once to fill forms faster and with fewer mistakes.',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                        const SizedBox(height: AppSizes.sm),
-                        _StatusChip(
-                          icon: autosaveIcon,
-                          label: autosaveLabel,
-                          tone: autosaveTone,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSizes.md),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(AppSizes.md),
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceAlt,
-                  borderRadius: AppSizes.fieldRadius,
-                  border: Border.all(
-                    color: AppColors.border.withValues(alpha: 0.7),
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          'Progress',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        const Spacer(),
-                        Text(
-                          '$percent%',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: theme.colorScheme.primary,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                        const SizedBox(width: AppSizes.xs),
-                        Icon(
-                          Icons.chevron_right_rounded,
-                          color: theme.colorScheme.onSurfaceVariant,
-                          size: 18,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: AppSizes.sm),
-                    _SegmentedCompletionBar(segments: segments),
-                    const SizedBox(height: AppSizes.sm),
-                    Text(
-                      nextStep,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: AppSizes.md),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: onCopyAll,
-                      icon: const Icon(Icons.copy_all_rounded),
-                      label: const Text('Copy All'),
-                    ),
-                  ),
-                  if (onRetrySave != null) ...[
-                    const SizedBox(width: AppSizes.sm),
-                    Expanded(
-                      child: FilledButton.icon(
-                        onPressed: onRetrySave,
-                        icon: const Icon(Icons.sync_rounded),
-                        label: const Text('Retry Save'),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SegmentedCompletionBar extends StatelessWidget {
-  const _SegmentedCompletionBar({required this.segments});
-
-  final List<bool> segments;
-
-  @override
-  Widget build(BuildContext context) {
-    final visibleSegments = segments.isEmpty ? const [false] : segments;
-    return Row(
-      children: [
-        for (var index = 0; index < visibleSegments.length; index++) ...[
-          Expanded(
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              height: 6,
-              decoration: BoxDecoration(
-                color: visibleSegments[index]
-                    ? Theme.of(context).colorScheme.primary
-                    : AppColors.border.withValues(alpha: 0.75),
-                borderRadius: BorderRadius.circular(999),
-              ),
-            ),
-          ),
-          if (index != visibleSegments.length - 1)
-            const SizedBox(width: AppSizes.xs),
-        ],
-      ],
-    );
-  }
-}
-
-class _ProfilePhotoCropPage extends StatefulWidget {
-  const _ProfilePhotoCropPage({required this.imageBytes});
-
-  final Uint8List imageBytes;
-
-  @override
-  State<_ProfilePhotoCropPage> createState() => _ProfilePhotoCropPageState();
-}
-
-class _ProfilePhotoCropPageState extends State<_ProfilePhotoCropPage> {
-  final _cropController = CropController();
-  bool _isCropping = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Position Photo'),
-        leading: IconButton(
-          tooltip: 'Cancel',
-          onPressed: _isCropping ? null : () => Navigator.of(context).pop(),
-          icon: const Icon(Icons.close_rounded),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsetsDirectional.only(end: AppSizes.sm),
-            child: FilledButton(
-              onPressed: _isCropping ? null : _applyCrop,
-              child: _isCropping
-                  ? const SizedBox.square(
-                      dimension: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Text('Apply'),
-            ),
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: Container(
-                width: double.infinity,
-                color: AppColors.surfaceAlt,
-                child: Crop(
-                  image: widget.imageBytes,
-                  controller: _cropController,
-                  aspectRatio: 1,
-                  withCircleUi: true,
-                  interactive: true,
-                  fixCropRect: true,
-                  initialRectBuilder: InitialRectBuilder.withSizeAndRatio(
-                    size: 0.82,
-                    aspectRatio: 1,
-                  ),
-                  baseColor: AppColors.surfaceAlt,
-                  maskColor: Colors.black.withValues(alpha: 0.56),
-                  progressIndicator: const Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                  onCropped: (result) {
-                    if (!mounted) return;
-                    setState(() => _isCropping = false);
-                    switch (result) {
-                      case CropSuccess(:final croppedImage):
-                        Navigator.of(context).pop(croppedImage);
-                      case CropFailure():
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Could not crop selected photo.'),
-                          ),
-                        );
-                    }
-                  },
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSizes.md,
-                AppSizes.sm,
-                AppSizes.md,
-                AppSizes.md,
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.touch_app_outlined,
-                    size: 18,
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: AppSizes.sm),
-                  Expanded(
-                    child: Text(
-                      'Drag to position and pinch to zoom inside the profile circle.',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _applyCrop() {
-    setState(() => _isCropping = true);
-    _cropController.cropCircle();
-  }
-}
-
-class _ProfileAvatar extends StatelessWidget {
-  const _ProfileAvatar({
-    required this.photoPath,
-    required this.displayName,
-    required this.onTap,
-  });
-
-  final String photoPath;
-  final String displayName;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final initial = displayName.trim().isEmpty
-        ? null
-        : displayName.trim().characters.first.toUpperCase();
-    final hasPhoto = photoPath.isNotEmpty && File(photoPath).existsSync();
-    return Semantics(
-      button: true,
-      label: hasPhoto ? 'Edit profile photo' : 'Add profile photo',
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: onTap,
-        child: SizedBox(
-          height: 64,
-          width: 64,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: initial == null
-                        ? AppColors.muted
-                        : AppColors.secondary,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.border),
-                    image: hasPhoto
-                        ? DecorationImage(
-                            image: FileImage(File(photoPath)),
-                            fit: BoxFit.cover,
-                          )
-                        : null,
-                  ),
-                  alignment: Alignment.center,
-                  child: hasPhoto
-                      ? null
-                      : Text(
-                          initial ?? 'I',
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            color: initial == null
-                                ? theme.colorScheme.onSurfaceVariant
-                                : theme.colorScheme.primary,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                ),
-              ),
-              Positioned(
-                right: -4,
-                bottom: -4,
-                child: Container(
-                  height: 28,
-                  width: 28,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary,
-                    borderRadius: BorderRadius.circular(999),
-                    border: Border.all(color: AppColors.surface, width: 2),
-                  ),
-                  child: const Icon(
-                    Icons.camera_alt_outlined,
-                    color: Colors.white,
-                    size: 14,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-enum _AvatarAction { gallery, camera, remove }
-
-class _AvatarActionSheet extends StatelessWidget {
-  const _AvatarActionSheet();
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          AppSizes.md,
-          0,
-          AppSizes.md,
-          AppSizes.md,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.photo_library_outlined),
-              title: const Text('Choose from gallery'),
-              onTap: () => Navigator.of(context).pop(_AvatarAction.gallery),
-            ),
-            ListTile(
-              leading: const Icon(Icons.photo_camera_outlined),
-              title: const Text('Take photo'),
-              onTap: () => Navigator.of(context).pop(_AvatarAction.camera),
-            ),
-            ListTile(
-              leading: const Icon(Icons.delete_outline_rounded),
-              title: const Text('Remove photo'),
-              onTap: () => Navigator.of(context).pop(_AvatarAction.remove),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 class _StatusChip extends StatelessWidget {
   const _StatusChip({

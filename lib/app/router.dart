@@ -34,10 +34,7 @@ class AppRouter {
         builder: (context, state, child) =>
             AppNavigationShell(currentLocation: state.uri.path, child: child),
         routes: [
-          GoRoute(
-            path: '/home',
-            builder: (context, state) => const HomePage(),
-          ),
+          GoRoute(path: '/home', builder: (context, state) => const HomePage()),
           GoRoute(
             path: '/my-info',
             builder: (context, state) => MyInfoPage(

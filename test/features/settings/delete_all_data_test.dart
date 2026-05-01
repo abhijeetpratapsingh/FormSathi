@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:formsathi/app/di.dart';
+import 'package:formsathi/features/my_info/domain/entities/user_info.dart';
+import 'package:formsathi/features/my_info/domain/repositories/my_info_repository.dart';
+import 'package:formsathi/features/my_info/domain/usecases/get_user_info.dart';
+import 'package:formsathi/features/my_info/domain/usecases/save_user_info.dart';
 import 'package:formsathi/features/settings/domain/entities/app_lock_credential.dart';
 import 'package:formsathi/features/settings/domain/entities/privacy_settings.dart';
 import 'package:formsathi/features/settings/domain/entities/wipe_result.dart';
@@ -12,12 +16,17 @@ import 'package:formsathi/features/settings/presentation/widgets/delete_all_data
 
 void main() {
   late _FakeSettingsRepository repository;
+  late _FakeMyInfoRepository myInfoRepository;
 
   setUp(() async {
     await sl.reset();
     repository = _FakeSettingsRepository();
+    myInfoRepository = _FakeMyInfoRepository();
     sl
+      ..registerSingleton<MyInfoRepository>(myInfoRepository)
       ..registerSingleton<SettingsRepository>(repository)
+      ..registerFactory(() => GetUserInfo(sl()))
+      ..registerFactory(() => SaveUserInfo(sl()))
       ..registerFactory(() => GetPrivacySettingsUseCase(sl()))
       ..registerFactory(() => EnableAppLockUseCase(sl()))
       ..registerFactory(() => VerifyAppLockUseCase(sl()))
@@ -65,7 +74,10 @@ void main() {
     await tester.pumpWidget(const MaterialApp(home: SettingsPage()));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Delete all local data'));
+    await tester.tap(find.byTooltip('More actions'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Delete all info from this device'));
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
@@ -75,6 +87,29 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(repository.wipeCount, 1);
+  });
+
+  testWidgets('settings renders moved profile summary card', (tester) async {
+    myInfoRepository.userInfo = const UserInfo(
+      fullName: 'Asha Kumar',
+      email: 'asha@example.com',
+      phone: '+91 9999999999',
+    );
+
+    await tester.pumpWidget(const MaterialApp(home: SettingsPage()));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Your Profile'), findsOneWidget);
+    expect(find.text('Asha Kumar'), findsOneWidget);
+    expect(
+      find.text('Update your photo here, then manage full profile details from Info.'),
+      findsOneWidget,
+    );
+    expect(find.text('Progress'), findsNothing);
+    expect(find.text('Copy All'), findsNothing);
+    expect(find.text('Retry Save'), findsNothing);
+    expect(find.textContaining('%'), findsNothing);
+    expect(find.byIcon(Icons.camera_alt_outlined), findsOneWidget);
   });
 }
 
@@ -115,5 +150,22 @@ class _FakeSettingsRepository implements SettingsRepository {
       deletedProcessedRecords: 0,
       deletedProcessedFiles: 0,
     );
+  }
+}
+
+class _FakeMyInfoRepository implements MyInfoRepository {
+  UserInfo userInfo = const UserInfo();
+
+  @override
+  Future<void> clearUserInfo() async {
+    userInfo = const UserInfo();
+  }
+
+  @override
+  Future<UserInfo> getUserInfo() async => userInfo;
+
+  @override
+  Future<void> saveUserInfo(UserInfo userInfo) async {
+    this.userInfo = userInfo;
   }
 }

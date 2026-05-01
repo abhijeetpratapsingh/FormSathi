@@ -15,32 +15,18 @@ class HomePage extends StatelessWidget {
     final theme = Theme.of(context);
     final quickActions = <_HomeQuickAction>[
       const _HomeQuickAction(
-        title: 'My Info',
+        title: 'Info',
         subtitle: 'Save your personal details once',
         icon: Icons.badge_outlined,
         route: '/my-info',
         color: AppColors.primary,
       ),
       const _HomeQuickAction(
-        title: 'Documents',
+        title: 'Docs',
         subtitle: 'Review processed images and PDFs',
         icon: Icons.folder_open_outlined,
         route: '/documents',
         color: Color(0xFF8B5CF6),
-      ),
-      const _HomeQuickAction(
-        title: 'Tools',
-        subtitle: 'Resize, convert, compress in minutes',
-        icon: Icons.construction_outlined,
-        route: '/tools',
-        color: Color(0xFF0F766E),
-      ),
-      const _HomeQuickAction(
-        title: 'Settings',
-        subtitle: 'Preferences, lock, and privacy',
-        icon: Icons.settings_outlined,
-        route: '/settings',
-        color: AppColors.warning,
       ),
     ];
 
@@ -133,8 +119,8 @@ class HomePage extends StatelessWidget {
             ),
             const SizedBox(height: AppSizes.lg),
             const _HomeSectionTitle(
-              title: 'Quick actions',
-              subtitle: 'Jump to your most-used flows with one tap.',
+              title: 'Info & docs',
+              subtitle: 'Start here to manage saved details and reusable documents.',
             ),
             const SizedBox(height: AppSizes.sm),
             GridView.builder(
@@ -145,7 +131,7 @@ class HomePage extends StatelessWidget {
                 crossAxisCount: 2,
                 crossAxisSpacing: AppSizes.sm,
                 mainAxisSpacing: AppSizes.sm,
-                childAspectRatio: 1.55,
+                childAspectRatio: 1.65,
               ),
               itemBuilder: (context, index) {
                 final action = quickActions[index];
