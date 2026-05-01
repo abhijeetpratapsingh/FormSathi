@@ -1,9 +1,11 @@
 import 'package:go_router/go_router.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'app_navigation_shell.dart';
 import 'di.dart';
 import '../features/documents/presentation/cubit/documents_cubit.dart';
 import '../features/documents/presentation/pages/documents_page.dart';
+import '../features/home/presentation/cubit/home_cubit.dart';
 import '../features/home/presentation/pages/home_page.dart';
 import '../features/home/presentation/pages/splash_page.dart';
 import '../features/my_info/presentation/cubit/my_info_cubit.dart';
@@ -34,7 +36,17 @@ class AppRouter {
         builder: (context, state, child) =>
             AppNavigationShell(currentLocation: state.uri.path, child: child),
         routes: [
-          GoRoute(path: '/home', builder: (context, state) => const HomePage()),
+          GoRoute(
+            path: '/home',
+            builder: (context, state) => BlocProvider(
+              create: (_) => HomeCubit(
+                getUserInfoUseCase: sl(),
+                getDocumentsUseCase: sl(),
+                loadRecentProcessedFilesUseCase: sl(),
+              )..load(),
+              child: const HomePage(),
+            ),
+          ),
           GoRoute(
             path: '/my-info',
             builder: (context, state) => MyInfoPage(

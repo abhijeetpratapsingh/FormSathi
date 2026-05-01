@@ -343,7 +343,9 @@ class ProfileAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final trimmedName = displayName.trim();
-    final initial = trimmedName.isEmpty ? null : trimmedName.characters.first.toUpperCase();
+    final initial = trimmedName.isEmpty
+        ? null
+        : trimmedName.characters.first.toUpperCase();
     final hasPhoto = photoPath.isNotEmpty && File(photoPath).existsSync();
     return Semantics(
       button: true,
@@ -360,7 +362,9 @@ class ProfileAvatar extends StatelessWidget {
               Positioned.fill(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: initial == null ? AppColors.muted : AppColors.secondary,
+                    color: initial == null
+                        ? AppColors.muted
+                        : AppColors.secondary,
                     shape: BoxShape.circle,
                     border: Border.all(color: AppColors.border),
                     image: hasPhoto
@@ -441,61 +445,6 @@ class _SegmentedCompletionBar extends StatelessWidget {
   }
 }
 
-class _StatusChip extends StatelessWidget {
-  const _StatusChip({
-    required this.icon,
-    required this.label,
-    required this.tone,
-  });
-
-  final IconData icon;
-  final String label;
-  final ProfileOverviewTone tone;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colors = switch (tone) {
-      ProfileOverviewTone.success => (
-        foreground: AppColors.success,
-        background: AppColors.success.withValues(alpha: 0.12),
-      ),
-      ProfileOverviewTone.warning => (
-        foreground: AppColors.warning,
-        background: AppColors.warning.withValues(alpha: 0.12),
-      ),
-      ProfileOverviewTone.info => (
-        foreground: theme.colorScheme.primary,
-        background: theme.colorScheme.primary.withValues(alpha: 0.12),
-      ),
-    };
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colors.background,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 16, color: colors.foreground),
-            const SizedBox(width: AppSizes.xs),
-            Text(
-              label,
-              style: theme.textTheme.labelMedium?.copyWith(
-                color: colors.foreground,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _AutosaveIconButton extends StatelessWidget {
   const _AutosaveIconButton({
     required this.icon,
@@ -551,11 +500,7 @@ class _AutosaveIconButton extends StatelessWidget {
                     ),
                   ),
                 )
-              : Icon(
-                  icon,
-                  size: 18,
-                  color: colors.foreground,
-                ),
+              : Icon(icon, size: 18, color: colors.foreground),
         ),
       ),
     );
